@@ -15,9 +15,62 @@
                 <flux:navbar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                     {{ __('Dashboard') }}
                 </flux:navbar.item>
+
+                <flux:dropdown>
+                    <flux:navbar.item icon:trailing="chevron-down">Management</flux:navbar.item>
+                    <flux:navmenu>
+                        <flux:navmenu.item :href="route('owners.table')" :current="request()->routeIs('owners.*')" wire:navigate>
+                            <div class="flex items-center gap-2">
+                                <flux:icon name="users" class="h-5 w-5" />
+                                <span>Owners</span>
+                            </div>
+                        </flux:navmenu.item>
+                        <flux:navmenu.item :href="route('properties.table')" :current="request()->routeIs('properties.*')" wire:navigate>
+                            <div class="flex items-center gap-2">
+                                <flux:icon name="building-office" class="h-5 w-5" />
+                                <span>Properties</span>
+                            </div>
+                        </flux:navmenu.item>
+                    </flux:navmenu>
+                </flux:dropdown>
             </flux:navbar>
 
             <flux:spacer />
+            <flux:dropdown>
+                <flux:navbar.item icon:trailing="chevron-down">Config</flux:navbar.item>
+                <flux:navmenu>
+                    <flux:navmenu.item :href="route('roles.table')" :current="request()->routeIs('roles.table')" wire:navigate>
+                        <div class="flex items-center gap-2">
+                            <flux:icon name="shield-check" class="h-5 w-5" />
+                            <span>Roles</span>
+                        </div>
+                    </flux:navmenu.item>
+                    <flux:navmenu.item :href="route('permissions.table')" :current="request()->routeIs('permissions.table')" wire:navigate>
+                        <div class="flex items-center gap-2">
+                            <flux:icon name="key" class="h-5 w-5" />
+                            <span>Permissions</span>
+                        </div>
+                    </flux:navmenu.item>
+                    <flux:navmenu.item :href="route('modules.table')" :current="request()->routeIs('modules.table')" wire:navigate>
+                        <div class="flex items-center gap-2">
+                            <flux:icon name="squares-2x2" class="h-5 w-5" />
+                            <span>Modules</span>
+                        </div>
+                    </flux:navmenu.item>
+                    <flux:navmenu.item :href="route('permission-groups.table')" :current="request()->routeIs('permission-groups.table')" wire:navigate>
+                        <div class="flex items-center gap-2">
+                            <flux:icon name="folder" class="h-5 w-5" />
+                            <span>Permission Groups</span>
+                        </div>
+                    </flux:navmenu.item>
+                    <flux:navmenu.item :href="route('users.table')" :current="request()->routeIs('users.table')" wire:navigate>
+                        <div class="flex items-center gap-2">
+                            <flux:icon name="users" class="h-5 w-5" />
+                            <span>Users</span>
+                        </div>
+                    </flux:navmenu.item>
+                </flux:navmenu>
+            </flux:dropdown>
 
             <flux:navbar class="mr-1.5 space-x-0.5 py-0!">
                 <flux:tooltip :content="__('Search')" position="bottom">

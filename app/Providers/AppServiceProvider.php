@@ -19,6 +19,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Register the middleware in the router
+        $router = $this->app['router'];
+        $router->aliasMiddleware('protect-media', \App\Http\Middleware\ProtectMediaAccess::class);
     }
 }

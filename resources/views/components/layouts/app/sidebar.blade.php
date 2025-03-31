@@ -46,6 +46,12 @@
                             <span>Permission Groups</span>
                         </div>
                     </flux:navmenu.item>
+                    <flux:navmenu.item :href="route('users.table')" :current="request()->routeIs('users.table')" wire:navigate>
+                        <div class="flex items-center gap-2">
+                            <flux:icon name="users" class="h-5 w-5" />
+                            <span>Users</span>
+                        </div>
+                    </flux:navmenu.item>
                 </flux:navmenu>
             </flux:dropdown>
 

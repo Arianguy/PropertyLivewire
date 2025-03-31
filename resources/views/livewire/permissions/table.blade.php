@@ -1,7 +1,7 @@
 <div>
     <div class="flex items-center justify-between">
         <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">Permissions</h2>
-        <a href="{{ route('permissions.create') }}" class="inline-flex items-center gap-x-1.5 rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-red shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600">
+        <a href="{{ route('permissions.create') }}" class="inline-flex items-center gap-x-1.5 rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-green-900 shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600">
             <flux:icon name="plus" class="-ml-0.5 h-5 w-5" />
             Create Permission
         </a>
