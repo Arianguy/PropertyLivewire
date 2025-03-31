@@ -20,13 +20,34 @@
             <flux:spacer />
 
             <flux:dropdown>
-        <flux:navbar.item icon:trailing="chevron-down" >Account</flux:navbar.item>
-            <flux:navmenu>
-                <flux:navmenu.item icon="home" href="#">Profile</flux:navmenu.item>
-                <flux:navmenu.item href="#">Settings</flux:navmenu.item>
-                <flux:navmenu.item href="#">Billing</flux:navmenu.item>
-            </flux:navmenu>
-         </flux:dropdown>
+                <flux:navbar.item icon:trailing="chevron-down">Config</flux:navbar.item>
+                <flux:navmenu>
+                    <flux:navmenu.item :href="route('roles.table')" :current="request()->routeIs('roles.table')" wire:navigate>
+                        <div class="flex items-center gap-2">
+                            <flux:icon name="shield-check" class="h-5 w-5" />
+                            <span>Roles</span>
+                        </div>
+                    </flux:navmenu.item>
+                    <flux:navmenu.item :href="route('permissions.table')" :current="request()->routeIs('permissions.table')" wire:navigate>
+                        <div class="flex items-center gap-2">
+                            <flux:icon name="key" class="h-5 w-5" />
+                            <span>Permissions</span>
+                        </div>
+                    </flux:navmenu.item>
+                    <flux:navmenu.item :href="route('modules.table')" :current="request()->routeIs('modules.table')" wire:navigate>
+                        <div class="flex items-center gap-2">
+                            <flux:icon name="squares-2x2" class="h-5 w-5" />
+                            <span>Modules</span>
+                        </div>
+                    </flux:navmenu.item>
+                    <flux:navmenu.item :href="route('permission-groups.table')" :current="request()->routeIs('permission-groups.table')" wire:navigate>
+                        <div class="flex items-center gap-2">
+                            <flux:icon name="folder" class="h-5 w-5" />
+                            <span>Permission Groups</span>
+                        </div>
+                    </flux:navmenu.item>
+                </flux:navmenu>
+            </flux:dropdown>
 
 
 {{--

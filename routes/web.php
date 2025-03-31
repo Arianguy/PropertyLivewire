@@ -1,7 +1,11 @@
 <?php
 
+use App\Livewire\Config\RolesTable;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
+
+
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -18,4 +22,23 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
 });
 
-require __DIR__.'/auth.php';
+// Roles and Permissions Management
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/roles', App\Livewire\Roles\Table::class)->name('roles.table');
+    Route::get('/roles/create', App\Livewire\Roles\Create::class)->name('roles.create');
+    Route::get('/roles/{role}/edit', App\Livewire\Roles\Edit::class)->name('roles.edit');
+
+    Route::get('/permissions', App\Livewire\Permissions\Table::class)->name('permissions.table');
+    Route::get('/permissions/create', App\Livewire\Permissions\Create::class)->name('permissions.create');
+    Route::get('/permissions/{permission}/edit', App\Livewire\Permissions\Edit::class)->name('permissions.edit');
+
+    Route::get('/modules', App\Livewire\Modules\Table::class)->name('modules.table');
+    Route::get('/modules/create', App\Livewire\Modules\Create::class)->name('modules.create');
+    Route::get('/modules/{module}/edit', App\Livewire\Modules\Edit::class)->name('modules.edit');
+
+    Route::get('/permission-groups', App\Livewire\PermissionGroups\Table::class)->name('permission-groups.table');
+    Route::get('/permission-groups/create', App\Livewire\PermissionGroups\Create::class)->name('permission-groups.create');
+    Route::get('/permission-groups/{permissionGroup}/edit', App\Livewire\PermissionGroups\Edit::class)->name('permission-groups.edit');
+});
+
+require __DIR__ . '/auth.php';
