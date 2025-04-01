@@ -195,7 +195,7 @@
                         </div>
 
                         <!-- EID Documents Section -->
-                        <div>
+<div>
                             <h4 class="text-md font-medium text-gray-700 dark:text-gray-300 mb-2">EID Copies</h4>
 
                             <!-- Existing EID Files -->

@@ -12,12 +12,28 @@
         </a>
     </div>
 
-    <div class="mt-4">
-        <div class="relative rounded-md shadow-sm">
+    <div class="mt-4 flex items-center justify-between">
+        <div class="w-64 relative rounded-md shadow-sm">
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <flux:icon name="magnifying-glass" class="h-5 w-5 text-gray-400" />
+                <flux:icon name="magnifying-glass" class="h-4 w-4 text-gray-400" />
             </div>
-            <input type="text" wire:model.live.debounce.300ms="search" class="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700" placeholder="Search properties...">
+            <input type="text" wire:model.live.debounce.300ms="search" class="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700" placeholder="Search...">
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <div class="relative" x-data="{ open: false }">
+                <button @click="open = !open" type="button" class="inline-flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700 dark:hover:bg-gray-700">
+                    <flux:icon name="arrow-down-tray" class="-ml-0.5 h-5 w-5 text-gray-400" />
+                    Export
+                    <flux:icon name="chevron-down" class="h-5 w-5 text-gray-400" />
+                </button>
+                <div x-show="open" @click.away="open = false" class="absolute right-0 z-10 mt-2 w-36 origin-top-right rounded-md bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
+                    <div class="py-1" role="none">
+                        <button wire:click="export('xlsx')" type="button" class="text-left w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" role="menuitem" tabindex="-1">Excel (.xlsx)</button>
+                        <button wire:click="export('pdf')" type="button" class="text-left w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" role="menuitem" tabindex="-1">PDF</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -46,9 +62,23 @@
                                     <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">{{ $property->community }}</td>
                                     <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">{{ $property->owner->name ?? 'N/A' }}</td>
                                     <td class="whitespace-nowrap px-3 py-4 text-sm">
-                                        <span class="inline-flex items-center rounded-md bg-{{ $property->status === 'Available' ? 'green' : ($property->status === 'Rented' ? 'blue' : 'yellow') }}-50 px-2 py-1 text-xs font-medium text-{{ $property->status === 'Available' ? 'green' : ($property->status === 'Rented' ? 'blue' : 'yellow') }}-700 ring-1 ring-inset ring-{{ $property->status === 'Available' ? 'green' : ($property->status === 'Rented' ? 'blue' : 'yellow') }}-600/10">
-                                            {{ $property->status }}
-                                        </span>
+                                        @if($property->status === 'VACANT')
+                                            <span class="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
+                                                VACANT
+                                            </span>
+                                        @elseif($property->status === 'LEASED')
+                                            <span class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                                                LEASED
+                                            </span>
+                                        @elseif($property->status === 'MAINTENANCE')
+                                            <span class="inline-flex items-center rounded-full bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-700 ring-1 ring-inset ring-yellow-600/20">
+                                                MAINTENANCE
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-600/20">
+                                                {{ $property->status }}
+                                            </span>
+                                        @endif
                                     </td>
                                     <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                         <div class="flex justify-end gap-2">

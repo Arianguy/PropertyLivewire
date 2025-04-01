@@ -1,6 +1,6 @@
 <div class="max-w-6xl mx-auto">
     <div class="flex justify-between items-center mb-6">
-        <div>
+<div>
             <h2 class="text-2xl font-extrabold text-gray-900 dark:text-gray-100">Create Owner</h2>
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Add a new property owner to the system</p>
         </div>
