@@ -39,6 +39,19 @@
                         </flux:navmenu.item>
                     </flux:navmenu>
                 </flux:dropdown>
+
+                <flux:dropdown>
+                    <flux:navbar.item icon:trailing="chevron-down">Transaction</flux:navbar.item>
+                    <flux:navmenu>
+                        <flux:navmenu.item :href="route('contracts.table')" :current="request()->routeIs('contracts.*')" wire:navigate>
+                            <div class="flex items-center gap-2">
+                                <flux:icon name="document-text" class="h-5 w-5" />
+                                <span>Contracts</span>
+                            </div>
+                        </flux:navmenu.item>
+
+                    </flux:navmenu>
+                </flux:dropdown>
             </flux:navbar>
 
             <flux:spacer />
@@ -159,6 +172,27 @@
                 <flux:navlist.group :heading="__('Platform')">
                     <flux:navlist.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                     {{ __('Dashboard') }}
+                    </flux:navlist.item>
+                </flux:navlist.group>
+
+                <flux:navlist.group :heading="__('Management')">
+                    <flux:navlist.item icon="users" :href="route('owners.table')" :current="request()->routeIs('owners.*')" wire:navigate>
+                    {{ __('Owners') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item icon="building-office" :href="route('properties.table')" :current="request()->routeIs('properties.*')" wire:navigate>
+                    {{ __('Properties') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item icon="users" :href="route('tenants.table')" :current="request()->routeIs('tenants.*')" wire:navigate>
+                    {{ __('Tenants') }}
+                    </flux:navlist.item>
+                </flux:navlist.group>
+
+                <flux:navlist.group :heading="__('Transaction')">
+                    <flux:navlist.item icon="document-text" :href="route('contracts.table')" :current="request()->routeIs('contracts.*')" wire:navigate>
+                    {{ __('Contracts') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item icon="arrow-path" :href="route('contracts.renewal-list')" :current="request()->routeIs('contracts.renewal-list')" wire:navigate>
+                    {{ __('Contract Renewals') }}
                     </flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>

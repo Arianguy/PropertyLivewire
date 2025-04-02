@@ -70,4 +70,19 @@ Route::middleware(['auth', 'role:Super Admin'])->group(function () {
     Route::get('/tenants/{tenant}/edit', App\Livewire\Tenants\Edit::class)->name('tenants.edit');
 });
 
+// Contract Management Routes
+Route::middleware(['auth'])->group(function () {
+    // Contract listing
+    Route::get('/contracts', App\Livewire\Contracts\Table::class)->name('contracts.table');
+    Route::get('/contracts/create', App\Livewire\Contracts\Create::class)->name('contracts.create');
+
+    // Contract renewal specific routes
+    Route::get('/contracts/renewal-list', App\Livewire\Contracts\RenewalList::class)->name('contracts.renewal-list');
+
+    // Contract detail routes - these must come after non-parameter routes
+    Route::get('/contracts/{contract}/edit', App\Livewire\Contracts\Edit::class)->name('contracts.edit');
+    Route::get('/contracts/{contract}', App\Livewire\Contracts\Show::class)->name('contracts.show');
+    Route::get('/contracts/{contract}/renew', App\Livewire\Contracts\Renew::class)->name('contracts.renew');
+});
+
 require __DIR__ . '/auth.php';
