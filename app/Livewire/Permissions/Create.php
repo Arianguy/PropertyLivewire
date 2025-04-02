@@ -5,6 +5,7 @@ namespace App\Livewire\Permissions;
 use App\Models\Module;
 use App\Models\Permission;
 use App\Models\PermissionGroup;
+use App\Models\Role;
 use Livewire\Component;
 
 class Create extends Component
@@ -28,12 +29,18 @@ class Create extends Component
     {
         $this->validate();
 
-        Permission::create([
+        $permission = Permission::create([
             'name' => $this->name,
             'description' => $this->description,
             'module_id' => $this->module_id,
             'permission_group_id' => $this->permission_group_id,
         ]);
+
+        // Automatically assign the new permission to Super Admin role
+        $superAdminRole = Role::where('name', 'Super Admin')->first();
+        if ($superAdminRole) {
+            $superAdminRole->givePermissionTo($permission);
+        }
 
         $this->dispatch('notify', [
             'message' => 'Permission created successfully.',
