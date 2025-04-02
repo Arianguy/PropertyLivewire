@@ -63,4 +63,11 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\ProtectMediaAccess::c
     Route::get('/media/{id}/thumbnail/{conversion?}', [App\Http\Controllers\MediaController::class, 'thumbnail'])->name('media.thumbnail');
 });
 
+// Tenant Management Routes
+Route::middleware(['auth', 'role:Super Admin'])->group(function () {
+    Route::get('/tenants', App\Livewire\Tenants\Table::class)->name('tenants.table');
+    Route::get('/tenants/create', App\Livewire\Tenants\Create::class)->name('tenants.create');
+    Route::get('/tenants/{tenant}/edit', App\Livewire\Tenants\Edit::class)->name('tenants.edit');
+});
+
 require __DIR__ . '/auth.php';

@@ -31,6 +31,12 @@
                                 <span>Properties</span>
                             </div>
                         </flux:navmenu.item>
+                        <flux:navmenu.item :href="route('tenants.table')" :current="request()->routeIs('tenants.*')" wire:navigate>
+                            <div class="flex items-center gap-2">
+                                <flux:icon name="users" class="h-5 w-5" />
+                                <span>Tenants</span>
+                            </div>
+                        </flux:navmenu.item>
                     </flux:navmenu>
                 </flux:dropdown>
             </flux:navbar>
