@@ -11,11 +11,14 @@ return new class extends Migration
         Schema::create('tenants', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('eid')->unique();
+            $table->date('eidexp');
+            $table->string('nationality');
             $table->string('email')->unique();
             $table->string('mobile');
-            $table->string('nationality');
             $table->string('passport_no');
             $table->date('passport_expiry');
+            $table->string('visa');
             $table->date('visa_expiry');
             $table->timestamps();
         });

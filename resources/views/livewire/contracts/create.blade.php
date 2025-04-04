@@ -223,7 +223,7 @@
                     <a href="{{ route('contracts.table') }}" class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
                         Cancel
                     </a>
-                    <button type="submit" class="ml-3 inline-flex justify-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-red bg-primary-600 hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-600">
+                    <button type="submit" class="ml-3 inline-flex justify-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-red     bg-primary-600 hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-600">
                         Create Contract
                     </button>
                 </div>

@@ -8,6 +8,7 @@ use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Rule;
+use Illuminate\Validation\Rule as ValidationRule;
 
 class Create extends Component
 {
@@ -19,47 +20,144 @@ class Create extends Component
     #[Rule('required|email|unique:tenants,email')]
     public $email = '';
 
-    #[Rule('required|string|min:10')]
+    #[Rule('required|string|min:10|max:15')]
     public $mobile = '';
 
-    #[Rule('required|string|min:2')]
+    #[Rule('required|string')]
     public $nationality = '';
 
     #[Rule('required|string|min:2')]
     public $passport_no = '';
 
-    #[Rule('required|date')]
+    #[Rule('required|date|after:today')]
     public $passport_expiry = '';
+
+    #[Rule('required|string|min:5|max:95')]
+    public $visa = '';
 
     #[Rule('required|date')]
     public $visa_expiry = '';
 
+    public $eid = '';
+
+    #[Rule('required|date')]
+    public $eidexp = '';
+
     public $passport_files = [];
     public $visa_files = [];
 
+    public function mount()
+    {
+        // Set default dates
+        $this->passport_expiry = date('Y-m-d');
+        $this->visa_expiry = date('Y-m-d');
+        $this->eidexp = date('Y-m-d');
+        $this->nationality = 'INDIAN'; // Set default nationality
+    }
+
     public function updatedPassportFiles()
     {
-        // Method trigger when files are uploaded via file input
+        // Validate only the new files, not the entire array
+        $this->validate([
+            'passport_files.*' => 'file|mimes:jpeg,jpg,png,pdf|max:10240',
+        ]);
     }
 
     public function updatedVisaFiles()
     {
-        // Method trigger when files are uploaded via file input
+        // Validate only the new files, not the entire array
+        $this->validate([
+            'visa_files.*' => 'file|mimes:jpeg,jpg,png,pdf|max:10240',
+        ]);
     }
 
     public function uploadMultiple($propertyName, $files)
     {
+        // Get current files
+        $currentFiles = $this->{$propertyName} ?: [];
+
+        // Add new files to the array
         foreach ($files as $file) {
-            $this->{$propertyName}[] = $file;
+            $currentFiles[] = $file;
         }
+
+        // Update the property with all files
+        $this->{$propertyName} = $currentFiles;
+    }
+
+    public function getNationalityOptions()
+    {
+        return [
+            'INDIAN' => 'INDIAN',
+            'SRI LANKAN' => 'SRI LANKAN',
+            'PAKISTANI' => 'PAKISTANI',
+            'EMARATI' => 'EMARATI',
+            'IRAQI' => 'IRAQI',
+            'IRANI' => 'IRANI',
+            'JORDAN' => 'JORDAN',
+            'EGYPTIAN' => 'EGYPTIAN',
+        ];
     }
 
     public function rules()
     {
         return [
-            'passport_files' => 'nullable|array',
+            'name' => 'required|string|min:2',
+            'email' => 'required|email|unique:tenants,email',
+            'mobile' => 'required|string|min:10|max:15',
+            'nationality' => 'required|string',
+            'passport_no' => 'required|string|min:2',
+            'passport_expiry' => 'required|date|after:today',
+            'visa' => 'required|string|min:5|max:95',
+            'visa_expiry' => 'required|date',
+            'eid' => ['required', 'string', function ($attribute, $value, $fail) {
+                // Debug output
+                \Illuminate\Support\Facades\Log::info('EID value being validated: "' . $value . '", length: ' . strlen($value) . ', is_numeric: ' . (is_numeric($value) ? 'true' : 'false'));
+
+                // If already formatted, validate with regex
+                if (preg_match('/^\d{3}-\d{4}-\d{7}-\d{1}$/', $value)) {
+                    \Illuminate\Support\Facades\Log::info('EID validation passed regex check');
+                    return;
+                }
+
+                // If entered as plain number, validate length and format it
+                if (preg_match('/^\d{15}$/', $value)) {
+                    \Illuminate\Support\Facades\Log::info('EID validation passed 15-digit check, formatting');
+                    $this->eid = substr($value, 0, 3) . '-' .
+                        substr($value, 3, 4) . '-' .
+                        substr($value, 7, 7) . '-' .
+                        substr($value, 14, 1);
+                    return;
+                }
+
+                // Handle any other 15-digit numeric value
+                if (strlen($value) == 15 && is_numeric($value)) {
+                    \Illuminate\Support\Facades\Log::info('EID validation passed numeric 15-char check, formatting');
+                    $this->eid = substr($value, 0, 3) . '-' .
+                        substr($value, 3, 4) . '-' .
+                        substr($value, 7, 7) . '-' .
+                        substr($value, 14, 1);
+                    return;
+                }
+
+                // Try removing any non-numeric characters and check if we have 15 digits
+                $numericOnly = preg_replace('/[^0-9]/', '', $value);
+                if (strlen($numericOnly) == 15) {
+                    \Illuminate\Support\Facades\Log::info('EID validation: stripped non-numeric chars, now formatting');
+                    $this->eid = substr($numericOnly, 0, 3) . '-' .
+                        substr($numericOnly, 3, 4) . '-' .
+                        substr($numericOnly, 7, 7) . '-' .
+                        substr($numericOnly, 14, 1);
+                    return;
+                }
+
+                \Illuminate\Support\Facades\Log::info('EID validation failed all checks');
+                $fail('The Emirates ID must be 15 digits or in the format xxx-xxxx-xxxxxxx-x.');
+            }],
+            'eidexp' => 'required|date',
+            'passport_files' => 'required|array|min:1',
             'passport_files.*' => 'file|mimes:jpeg,jpg,png,pdf|max:10240',
-            'visa_files' => 'nullable|array',
+            'visa_files' => 'required|array|min:1',
             'visa_files.*' => 'file|mimes:jpeg,jpg,png,pdf|max:10240',
         ];
     }
@@ -71,14 +169,24 @@ class Create extends Component
         try {
             DB::beginTransaction();
 
+            // Convert fields to uppercase
+            $name = strtoupper($this->name);
+            $nationality = strtoupper($this->nationality);
+            $passport_no = strtoupper($this->passport_no);
+            $visa = strtoupper($this->visa);
+            $eid = $this->eid;
+
             $tenant = Tenant::create([
-                'name' => $this->name,
+                'name' => $name,
                 'email' => $this->email,
                 'mobile' => $this->mobile,
-                'nationality' => $this->nationality,
-                'passport_no' => $this->passport_no,
+                'nationality' => $nationality,
+                'passport_no' => $passport_no,
                 'passport_expiry' => $this->passport_expiry,
+                'visa' => $visa,
                 'visa_expiry' => $this->visa_expiry,
+                'eid' => $eid,
+                'eidexp' => $this->eidexp,
             ]);
 
             // Upload passport files
@@ -120,8 +228,41 @@ class Create extends Component
         }
     }
 
+    public function removeFile($property, $index)
+    {
+        if (isset($this->{$property}[$index])) {
+            // Remove the file at the specified index
+            unset($this->{$property}[$index]);
+
+            // Re-index the array to maintain sequential keys
+            $this->{$property} = array_values($this->{$property});
+
+            // Only validate if we have no files left
+            if (empty($this->{$property})) {
+                $this->validate([
+                    $property => 'required|array|min:1',
+                ]);
+            }
+        }
+    }
+
+    public function updated($propertyName)
+    {
+        // When files are updated, make sure arrays are properly initialized
+        if ($propertyName === 'passport_files' || $propertyName === 'visa_files') {
+            if (empty($this->{$propertyName})) {
+                $this->{$propertyName} = [];
+            }
+
+            // Validate just this property
+            $this->validateOnly($propertyName);
+        }
+    }
+
     public function render()
     {
-        return view('livewire.tenants.create');
+        return view('livewire.tenants.create', [
+            'nationalityOptions' => $this->getNationalityOptions(),
+        ]);
     }
 }

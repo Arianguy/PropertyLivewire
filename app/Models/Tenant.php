@@ -25,7 +25,10 @@ class Tenant extends Model implements HasMedia
         'nationality',
         'passport_no',
         'passport_expiry',
+        'visa',
         'visa_expiry',
+        'eid',
+        'eidexp',
     ];
 
     /**

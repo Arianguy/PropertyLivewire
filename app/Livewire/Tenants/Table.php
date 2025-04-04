@@ -30,7 +30,7 @@ class Table extends Component
                 });
             })
             ->latest()
-            ->paginate(10);
+            ->paginate(20);
 
         return view('livewire.tenants.table', [
             'tenants' => $tenants
