@@ -4,7 +4,7 @@
             <div>
                 <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">Contract #{{ $contract->name }}</h2>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Detailed information about this contract and its history.
+                    View contract details and renewal history.
                 </p>
             </div>
             <div class="flex space-x-3">
@@ -13,8 +13,8 @@
                         <flux:icon name="arrow-path" class="-ml-0.5 h-5 w-5" />
                         Renew Contract
                     </a>
-                    <a href="{{ route('contracts.edit', $contract) }}" class="inline-flex items-center gap-x-1.5 rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600">
-                        <flux:icon name="pencil-square" class="-ml-0.5 h-5 w-5" />
+                    <a href="{{ route('contracts.edit', $contract) }}" class="inline-flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700 dark:hover:bg-gray-700">
+                        <flux:icon name="pencil" class="-ml-0.5 h-5 w-5" />
                         Edit Contract
                     </a>
                     <button type="button" wire:click="terminateContract" wire:confirm="Are you sure you want to terminate this contract? The property will be marked as VACANT." class="inline-flex items-center gap-x-1.5 rounded-md bg-yellow-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-600">
@@ -29,82 +29,50 @@
             </div>
         </div>
 
-        <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <!-- Contract Details -->
-            <div class="lg:col-span-2 bg-white dark:bg-gray-900 shadow overflow-hidden sm:rounded-lg">
-                <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
-                    <div>
-                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">Contract Information</h3>
-                        <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">Details about the contract terms and conditions.</p>
-                    </div>
-                    <div>
-                        @if($contract->validity === 'YES')
-                            <span class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                Active
-                            </span>
-                        @else
-                            <span class="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
-                                Inactive
-                            </span>
-                        @endif
-                    </div>
+        <div class="mt-6 space-y-8">
+            <!-- Current Contract Details -->
+            <div class="overflow-hidden bg-white shadow dark:bg-gray-800 sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6">
+                    <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">Contract Information</h3>
                 </div>
                 <div class="border-t border-gray-200 dark:border-gray-700">
                     <dl>
-                        <div class="bg-gray-50 dark:bg-gray-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Contract Number</dt>
-                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">{{ $contract->name }}</dd>
-                        </div>
-                        <div class="bg-white dark:bg-gray-900 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <div class="bg-gray-50 dark:bg-gray-900/50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Tenant</dt>
-                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">{{ $contract->tenant->name ?? 'N/A' }}</dd>
+                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">{{ $contract->tenant->name }}</dd>
                         </div>
-                        <div class="bg-gray-50 dark:bg-gray-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <div class="bg-white dark:bg-gray-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Property</dt>
-                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">{{ $contract->property->name ?? 'N/A' }}</dd>
+                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">{{ $contract->property->name }}</dd>
                         </div>
-                        <div class="bg-white dark:bg-gray-900 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Start Date</dt>
-                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">{{ \Carbon\Carbon::parse($contract->cstart)->format('F d, Y') }}</dd>
-                        </div>
-                        <div class="bg-gray-50 dark:bg-gray-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">End Date</dt>
-                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">{{ \Carbon\Carbon::parse($contract->cend)->format('F d, Y') }}</dd>
-                        </div>
-                        <div class="bg-white dark:bg-gray-900 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Rental Amount</dt>
-                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">${{ number_format($contract->amount, 2) }}</dd>
-                        </div>
-                        <div class="bg-gray-50 dark:bg-gray-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Security Deposit</dt>
-                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">${{ number_format($contract->sec_amt, 2) }}</dd>
-                        </div>
-                        <div class="bg-white dark:bg-gray-900 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Ejari Status</dt>
+                        <div class="bg-gray-50 dark:bg-gray-900/50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Contract Period</dt>
                             <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">
-                                @if($contract->ejari === 'YES')
-                                    <span class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                        Yes
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
-                                        No
-                                    </span>
-                                @endif
+                                {{ $contract->cstart->format('M d, Y') }} - {{ $contract->cend->format('M d, Y') }}
                             </dd>
                         </div>
-                        <div class="bg-gray-50 dark:bg-gray-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <div class="bg-white dark:bg-gray-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Rental Amount</dt>
+                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">$ {{ number_format($contract->amount, 2) }}</dd>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-900/50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Security Deposit</dt>
+                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">$ {{ number_format($contract->sec_amt, 2) }}</dd>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Ejari Number</dt>
+                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">{{ $contract->ejari ?: 'Not provided' }}</dd>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-900/50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Contract Type</dt>
+                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">{{ ucfirst($contract->type) }}</dd>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</dt>
                             <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">
-                                @if($contract->previousContract)
-                                    <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">
-                                        Renewal
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center rounded-full bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-600/20">
-                                        Original
-                                    </span>
-                                @endif
+                                <span class="inline-flex items-center rounded-md bg-{{ $contract->validity === 'YES' ? 'green' : 'red' }}-50 px-2 py-1 text-xs font-medium text-{{ $contract->validity === 'YES' ? 'green' : 'red' }}-700 ring-1 ring-inset ring-{{ $contract->validity === 'YES' ? 'green' : 'red' }}-600/20">
+                                    {{ $contract->validity === 'YES' ? 'Active' : 'Inactive' }}
+                                </span>
                             </dd>
                         </div>
                     </dl>
@@ -112,166 +80,111 @@
             </div>
 
             <!-- Contract Documents -->
-            <div class="lg:col-span-1 bg-white dark:bg-gray-900 shadow overflow-hidden sm:rounded-lg">
+            @if(count($media) > 0)
+            <div class="overflow-hidden bg-white shadow dark:bg-gray-800 sm:rounded-lg">
                 <div class="px-4 py-5 sm:px-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">Contract Documents</h3>
-                    <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">Attached files and media.</p>
+                    <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">Contract Documents</h3>
                 </div>
                 <div class="border-t border-gray-200 dark:border-gray-700">
-                    <ul class="divide-y divide-gray-200 dark:divide-gray-700">
-                        @forelse($media as $item)
-                            <li class="px-4 py-4">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0">
-                                        @if(Str::contains($item['mime_type'], 'pdf'))
-                                            <flux:icon name="document-text" class="h-8 w-8 text-gray-500" />
-                                        @else
-                                            <flux:icon name="photo" class="h-8 w-8 text-gray-500" />
-                                        @endif
-                                    </div>
-                                    <div class="ml-3 flex-1">
-                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $item['file_name'] }}</p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ human_filesize($item['size']) }}</p>
-                                    </div>
-                                    <div class="flex space-x-2">
-                                        <a href="{{ $item['url'] }}" target="_blank" class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700 dark:hover:bg-gray-700">
-                                            <flux:icon name="eye" class="h-4 w-4" />
-                                            <span class="sr-only">View</span>
-                                        </a>
-                                        <a href="{{ $item['download_url'] }}" class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700 dark:hover:bg-gray-700">
-                                            <flux:icon name="arrow-down-tray" class="h-4 w-4" />
-                                            <span class="sr-only">Download</span>
-                                        </a>
-                                    </div>
+                    <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
+                        @foreach($media as $file)
+                        <li class="flex items-center justify-between py-4 pl-4 pr-5 text-sm leading-6">
+                            <div class="flex w-0 flex-1 items-center">
+                                <svg class="h-5 w-5 flex-shrink-0 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+                                </svg>
+                                <div class="ml-4 flex min-w-0 flex-1 gap-2">
+                                    <span class="truncate font-medium">{{ $file['name'] }}</span>
+                                    <span class="flex-shrink-0 text-gray-400">{{ number_format($file['size'] / 1024, 2) }} kb</span>
                                 </div>
-                            </li>
-                        @empty
-                            <li class="px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                                No documents attached to this contract.
-                            </li>
-                        @endforelse
+                            </div>
+                            <div class="ml-4 flex flex-shrink-0 space-x-4">
+                                <a href="{{ $file['download_url'] }}" class="font-medium text-indigo-600 hover:text-indigo-500">Download</a>
+                                <a href="{{ $file['url'] }}" target="_blank" class="font-medium text-indigo-600 hover:text-indigo-500">View</a>
+                            </div>
+                        </li>
+                        @endforeach
                     </ul>
                 </div>
             </div>
-        </div>
+            @endif
 
-        <!-- Contract History -->
-        @if(count($ancestors) > 0 || count($renewals) > 0)
-            <div class="mt-6">
-                <div class="bg-white dark:bg-gray-900 shadow overflow-hidden sm:rounded-lg">
-                    <div class="px-4 py-5 sm:px-6">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">Contract History</h3>
-                        <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">Previous and subsequent contracts related to this property.</p>
-                    </div>
-                    <div class="border-t border-gray-200 dark:border-gray-700">
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
-                                <thead class="bg-gray-50 dark:bg-gray-800">
-                                    <tr>
-                                        <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 sm:pl-6">Contract #</th>
-                                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Period</th>
-                                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Amount</th>
-                                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Status</th>
-                                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Type</th>
-                                        <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                                            <span class="sr-only">Actions</span>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
-                                    <!-- Previous Contracts -->
-                                    @foreach($ancestors as $ancestor)
-                                        <tr class="bg-yellow-50 dark:bg-yellow-900">
-                                            <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-gray-100 sm:pl-6">{{ $ancestor->name }}</td>
-                                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                                                {{ \Carbon\Carbon::parse($ancestor->cstart)->format('M d, Y') }} -
-                                                {{ \Carbon\Carbon::parse($ancestor->cend)->format('M d, Y') }}
-                                            </td>
-                                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">${{ number_format($ancestor->amount, 2) }}</td>
-                                            <td class="whitespace-nowrap px-3 py-4 text-sm">
-                                                @if($ancestor->validity === 'YES')
-                                                    <span class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                                        Active
-                                                    </span>
-                                                @else
-                                                    <span class="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
-                                                        Inactive
-                                                    </span>
-                                                @endif
-                                            </td>
-                                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">Previous</td>
-                                            <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                                <a href="{{ route('contracts.show', $ancestor) }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-500 dark:hover:text-primary-400">
-                                                    <flux:icon name="eye" class="h-5 w-5" />
-                                                    <span class="sr-only">View</span>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-
-                                    <!-- Current Contract -->
-                                    <tr class="bg-green-50 dark:bg-green-900">
-                                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-gray-100 sm:pl-6">{{ $contract->name }}</td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                                            {{ \Carbon\Carbon::parse($contract->cstart)->format('M d, Y') }} -
-                                            {{ \Carbon\Carbon::parse($contract->cend)->format('M d, Y') }}
-                                        </td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">${{ number_format($contract->amount, 2) }}</td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-sm">
-                                            @if($contract->validity === 'YES')
-                                                <span class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                                    Active
-                                                </span>
-                                            @else
-                                                <span class="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
-                                                    Inactive
-                                                </span>
-                                            @endif
-                                        </td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">Current</td>
-                                        <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                            <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                                                Current
-                                            </span>
-                                        </td>
-                                    </tr>
-
-                                    <!-- Renewal Contracts -->
-                                    @foreach($renewals as $renewal)
-                                        <tr class="bg-blue-50 dark:bg-blue-900">
-                                            <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-gray-100 sm:pl-6">{{ $renewal->name }}</td>
-                                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                                                {{ \Carbon\Carbon::parse($renewal->cstart)->format('M d, Y') }} -
-                                                {{ \Carbon\Carbon::parse($renewal->cend)->format('M d, Y') }}
-                                            </td>
-                                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">${{ number_format($renewal->amount, 2) }}</td>
-                                            <td class="whitespace-nowrap px-3 py-4 text-sm">
-                                                @if($renewal->validity === 'YES')
-                                                    <span class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                                        Active
-                                                    </span>
-                                                @else
-                                                    <span class="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
-                                                        Inactive
-                                                    </span>
-                                                @endif
-                                            </td>
-                                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">Renewal</td>
-                                            <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                                <a href="{{ route('contracts.show', $renewal) }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-500 dark:hover:text-primary-400">
-                                                    <flux:icon name="eye" class="h-5 w-5" />
-                                                    <span class="sr-only">View</span>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+            <!-- Previous Contracts -->
+            @if(count($previousContracts) > 0)
+            <div class="overflow-hidden bg-white shadow dark:bg-gray-800 sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6">
+                    <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">Previous Contracts</h3>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">History of contracts that led to this one.</p>
+                </div>
+                <div class="border-t border-gray-200 dark:border-gray-700">
+                    <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
+                        @foreach($previousContracts as $prevContract)
+                        <li class="p-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100">Contract #{{ $prevContract['name'] }}</h4>
+                                    <div class="mt-1 grid grid-cols-2 gap-4 text-sm text-gray-500 dark:text-gray-400">
+                                        <div>
+                                            <p>Tenant: {{ $prevContract['tenant'] }}</p>
+                                            <p>Property: {{ $prevContract['property'] }}</p>
+                                            <p>Period: {{ $prevContract['start_date'] }} - {{ $prevContract['end_date'] }}</p>
+                                        </div>
+                                        <div>
+                                            <p>Amount: $ {{ $prevContract['amount'] }}</p>
+                                            <p>Security Deposit: $ {{ $prevContract['security_deposit'] }}</p>
+                                            <p>Ejari: {{ $prevContract['ejari'] ?: 'Not provided' }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <a href="{{ route('contracts.show', $prevContract['id']) }}" class="text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400">View Details</a>
+                                </div>
+                            </div>
+                        </li>
+                        @endforeach
+                    </ul>
                 </div>
             </div>
-        @endif
+            @endif
+
+            <!-- Renewal Contracts -->
+            @if(count($renewalContracts) > 0)
+            <div class="overflow-hidden bg-white shadow dark:bg-gray-800 sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6">
+                    <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">Renewal Contracts</h3>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Contracts that were renewed from this one.</p>
+                </div>
+                <div class="border-t border-gray-200 dark:border-gray-700">
+                    <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
+                        @foreach($renewalContracts as $renewalContract)
+                        <li class="p-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100">Contract #{{ $renewalContract['name'] }}</h4>
+                                    <div class="mt-1 grid grid-cols-2 gap-4 text-sm text-gray-500 dark:text-gray-400">
+                                        <div>
+                                            <p>Tenant: {{ $renewalContract['tenant'] }}</p>
+                                            <p>Property: {{ $renewalContract['property'] }}</p>
+                                            <p>Period: {{ $renewalContract['start_date'] }} - {{ $renewalContract['end_date'] }}</p>
+                                        </div>
+                                        <div>
+                                            <p>Amount: $ {{ $renewalContract['amount'] }}</p>
+                                            <p>Security Deposit: $ {{ $renewalContract['security_deposit'] }}</p>
+                                            <p>Ejari: {{ $renewalContract['ejari'] ?: 'Not provided' }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <a href="{{ route('contracts.show', $renewalContract['id']) }}" class="text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-400">View Details</a>
+                                </div>
+                            </div>
+                        </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+            @endif
+        </div>
     </div>
 </div>
 

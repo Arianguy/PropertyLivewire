@@ -8,20 +8,15 @@ use Livewire\Component;
 class Show extends Component
 {
     public Contract $contract;
-    public $renewals = [];
-    public $ancestors = [];
     public $media = [];
+    public $previousContracts = [];
+    public $renewalContracts = [];
 
     public function mount(Contract $contract)
     {
-        $this->contract = $contract->load(['tenant', 'property', 'renewals.tenant', 'renewals.property', 'previousContract']);
-
-        // Get renewals and ancestors
-        $this->renewals = $contract->allRenewals();
-        $this->ancestors = $contract->allAncestors();
-
-        // Load media
+        $this->contract = $contract;
         $this->loadMedia();
+        $this->loadContractHistory();
     }
 
     public function loadMedia()
@@ -29,14 +24,55 @@ class Show extends Component
         $this->media = $this->contract->getMedia('contracts_copy')->map(function ($item) {
             return [
                 'id' => $item->id,
-                'name' => $item->name,
-                'file_name' => $item->file_name,
+                'name' => $item->file_name,
                 'size' => $item->size,
-                'mime_type' => $item->mime_type,
+                'type' => $item->mime_type,
                 'url' => route('media.show', $item->id),
                 'download_url' => route('media.download', $item->id),
+                'thumbnail' => $item->hasGeneratedConversion('thumb')
+                    ? route('media.thumbnail', ['id' => $item->id, 'conversion' => 'thumb'])
+                    : null
             ];
         })->toArray();
+    }
+
+    public function loadContractHistory()
+    {
+        // Get all previous contracts (ancestors)
+        $this->previousContracts = $this->contract->allAncestors()
+            ->map(function ($contract) {
+                return [
+                    'id' => $contract->id,
+                    'name' => $contract->name,
+                    'tenant' => $contract->tenant->name,
+                    'property' => $contract->property->name,
+                    'start_date' => $contract->cstart->format('M d, Y'),
+                    'end_date' => $contract->cend->format('M d, Y'),
+                    'amount' => number_format($contract->amount, 2),
+                    'security_deposit' => number_format($contract->sec_amt, 2),
+                    'ejari' => $contract->ejari,
+                    'type' => $contract->type,
+                    'validity' => $contract->validity,
+                ];
+            })->toArray();
+
+        // Get all renewal contracts
+        $this->renewalContracts = $this->contract->allRenewals()
+            ->map(function ($contract) {
+                return [
+                    'id' => $contract->id,
+                    'name' => $contract->name,
+                    'tenant' => $contract->tenant->name,
+                    'property' => $contract->property->name,
+                    'start_date' => $contract->cstart->format('M d, Y'),
+                    'end_date' => $contract->cend->format('M d, Y'),
+                    'amount' => number_format($contract->amount, 2),
+                    'security_deposit' => number_format($contract->sec_amt, 2),
+                    'ejari' => $contract->ejari,
+                    'type' => $contract->type,
+                    'validity' => $contract->validity,
+                ];
+            })->toArray();
     }
 
     public function terminateContract()
