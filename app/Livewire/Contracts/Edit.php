@@ -7,6 +7,7 @@ use App\Models\Property;
 use App\Models\Tenant;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\DB;
 
 class Edit extends Component
 {
@@ -20,23 +21,33 @@ class Edit extends Component
     public $amount;
     public $sec_amt;
     public $ejari;
-    public $validity;
-    public $cont_copy = [];
+    public $cont_copy;
     public $media = [];
+
+    protected function rules()
+    {
+        return [
+            'tenant_id' => 'required|exists:tenants,id',
+            'property_id' => 'required|exists:properties,id',
+            'cstart' => 'required|date',
+            'cend' => 'required|date|after:cstart',
+            'amount' => 'required|numeric|min:0',
+            'sec_amt' => 'required|numeric|min:0',
+            'ejari' => 'nullable|string',
+            'cont_copy.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ];
+    }
 
     public function mount(Contract $contract)
     {
         $this->contract = $contract;
         $this->tenant_id = $contract->tenant_id;
         $this->property_id = $contract->property_id;
-        $this->cstart = $contract->cstart;
-        $this->cend = $contract->cend;
+        $this->cstart = $contract->cstart->format('Y-m-d');
+        $this->cend = $contract->cend->format('Y-m-d');
         $this->amount = $contract->amount;
         $this->sec_amt = $contract->sec_amt;
         $this->ejari = $contract->ejari;
-        $this->validity = $contract->validity;
-
-        // Load existing media
         $this->loadMedia();
     }
 
@@ -45,105 +56,89 @@ class Edit extends Component
         $this->media = $this->contract->getMedia('contracts_copy')->map(function ($item) {
             return [
                 'id' => $item->id,
-                'name' => $item->name,
-                'file_name' => $item->file_name,
+                'name' => $item->file_name,
                 'size' => $item->size,
-                'mime_type' => $item->mime_type,
-                'url' => $item->getUrl(),
+                'type' => $item->mime_type,
+                'url' => route('media.show', $item->id),
+                'download_url' => route('media.download', $item->id),
+                'thumbnail' => $item->hasGeneratedConversion('thumb')
+                    ? route('media.thumbnail', ['id' => $item->id, 'conversion' => 'thumb'])
+                    : null
             ];
         })->toArray();
     }
 
     public function deleteMedia($mediaId)
     {
-        $media = $this->contract->getMedia('contracts_copy')->where('id', $mediaId)->first();
-
-        if ($media) {
-            $media->delete();
-            $this->loadMedia();
-
+        try {
+            $media = $this->contract->getMedia('contracts_copy')->firstWhere('id', $mediaId);
+            if ($media) {
+                $media->delete();
+                $this->loadMedia();
+                $this->dispatch('notify', [
+                    'type' => 'success',
+                    'message' => 'File deleted successfully!'
+                ]);
+            }
+        } catch (\Exception $e) {
             $this->dispatch('notify', [
-                'type' => 'success',
-                'message' => 'Document deleted successfully!'
+                'type' => 'error',
+                'message' => 'Error deleting file: ' . $e->getMessage()
             ]);
         }
     }
 
     public function save()
     {
-        $validated = $this->validate([
-            'tenant_id' => 'required|exists:tenants,id',
-            'property_id' => 'required|exists:properties,id',
-            'cstart' => 'required|date|before:cend',
-            'cend' => 'required|date|after:cstart',
-            'amount' => 'required|numeric|min:0',
-            'sec_amt' => 'required|numeric|min:0',
-            'ejari' => 'required|string',
-            'validity' => 'required|string',
-            'cont_copy.*' => 'sometimes|file|mimes:pdf,jpg,jpeg,png|max:10240',
-        ], [
-            'tenant_id.required' => 'Please select a tenant.',
-            'property_id.required' => 'Please select a property.',
-            'cstart.before' => 'The contract start date must be before the end date.',
-            'cend.after' => 'The contract end date must be after the start date.',
-            'cont_copy.*.mimes' => 'Contract documents must be PDF, JPG, JPEG, or PNG files.',
-            'cont_copy.*.max' => 'Contract documents must be less than 10MB.',
-        ]);
+        $this->validate();
 
-        // Check if contract is valid for editing
-        if ($this->contract->validity !== 'YES' && $this->contract->renewals()->exists()) {
-            $this->dispatch('notify', [
-                'type' => 'error',
-                'message' => 'You cannot edit a terminated or renewed contract.'
+        try {
+            DB::beginTransaction();
+
+            $this->contract->update([
+                'tenant_id' => $this->tenant_id,
+                'property_id' => $this->property_id,
+                'cstart' => $this->cstart,
+                'cend' => $this->cend,
+                'amount' => $this->amount,
+                'sec_amt' => $this->sec_amt,
+                'ejari' => $this->ejari,
             ]);
-            return;
-        }
 
-        // Update the contract
-        $this->contract->update([
-            'tenant_id' => $this->tenant_id,
-            'property_id' => $this->property_id,
-            'cstart' => $this->cstart,
-            'cend' => $this->cend,
-            'amount' => $this->amount,
-            'sec_amt' => $this->sec_amt,
-            'ejari' => $this->ejari,
-            'validity' => $this->validity,
-        ]);
+            if ($this->cont_copy) {
+                foreach ($this->cont_copy as $file) {
+                    $this->contract->addMedia($file->getRealPath())
+                        ->usingName($file->getClientOriginalName())
+                        ->usingFileName($file->getClientOriginalName())
+                        ->toMediaCollection('contracts_copy');
+                }
 
-        // Handle file uploads
-        if (count($this->cont_copy) > 0) {
-            foreach ($this->cont_copy as $file) {
-                $this->contract->addMedia($file->getRealPath())
-                    ->usingName($file->getClientOriginalName())
-                    ->usingFileName($file->getClientOriginalName())
-                    ->toMediaCollection('contracts_copy');
+                $this->cont_copy = null;
+                $this->loadMedia();
             }
 
-            // Refresh media
-            $this->loadMedia();
-            $this->cont_copy = [];
-        }
+            DB::commit();
 
-        // Notify the user
-        $this->dispatch('notify', [
-            'type' => 'success',
-            'message' => 'Contract updated successfully!'
-        ]);
+            $this->dispatch('notify', [
+                'type' => 'success',
+                'message' => 'Contract updated successfully!'
+            ]);
+
+            return redirect()->route('contracts.table');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => 'Error updating contract: ' . $e->getMessage()
+            ]);
+        }
     }
 
     public function render()
     {
-        $originalPropertyId = $this->contract->property_id;
-
         return view('livewire.contracts.edit', [
-            'tenants' => Tenant::orderBy('name')->get(),
-            'properties' => Property::where(function ($query) use ($originalPropertyId) {
-                $query->where('status', 'VACANT')
-                    ->orWhere('id', $originalPropertyId);
-            })
-                ->orderBy('name')
-                ->get(),
+            'tenants' => Tenant::all(),
+            'properties' => Property::all(),
         ]);
     }
 }

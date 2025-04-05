@@ -5,8 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Contract extends Model implements HasMedia
 {
@@ -24,6 +26,13 @@ class Contract extends Model implements HasMedia
         'validity',
         'type',
         'previous_contract_id'
+    ];
+
+    protected $casts = [
+        'cstart' => 'date',
+        'cend' => 'date',
+        'amount' => 'decimal:2',
+        'sec_amt' => 'decimal:2',
     ];
 
     /**
@@ -45,7 +54,7 @@ class Contract extends Model implements HasMedia
     /**
      * Get the previous contract for the renewal.
      */
-    public function previousContract()
+    public function previousContract(): BelongsTo
     {
         return $this->belongsTo(Contract::class, 'previous_contract_id');
     }
@@ -53,7 +62,7 @@ class Contract extends Model implements HasMedia
     /**
      * Get the renewals for the contract.
      */
-    public function renewals()
+    public function renewals(): HasMany
     {
         return $this->hasMany(Contract::class, 'previous_contract_id');
     }
@@ -84,23 +93,71 @@ class Contract extends Model implements HasMedia
     {
         $allAncestors = collect();
 
-        if ($this->previousContract) {
-            $allAncestors->push($this->previousContract);
-            $allAncestors = $allAncestors->merge($this->previousContract->allAncestors());
+        $current = $this->previousContract;
+        while ($current) {
+            $allAncestors->push($current);
+            $current = $current->previousContract;
         }
 
         return $allAncestors;
     }
 
     /**
-     * Register the media collections.
+     * Register media collections
      */
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('contracts_copy')
-            ->useDisk('private')
-            ->acceptsFile(function ($file) {
-                return in_array($file->mimeType, ['application/pdf', 'image/jpeg', 'image/png']);
-            });
+            ->useDisk('public')
+            ->acceptsMimeTypes(['application/pdf', 'image/jpeg', 'image/png'])
+            ->withResponsiveImages();
+    }
+
+    /**
+     * Register media conversions
+     */
+    public function registerMediaConversions(Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(200)
+            ->height(200)
+            ->nonQueued();
+
+        $this->addMediaConversion('preview')
+            ->width(800)
+            ->height(800)
+            ->nonQueued();
+    }
+
+    /**
+     * Get secure URL for media
+     */
+    public function getSecureMediaUrl($media, ?string $conversion = null): string
+    {
+        if ($conversion && $media->hasGeneratedConversion($conversion)) {
+            return route('media.thumbnail', ['id' => $media->id, 'conversion' => $conversion]);
+        }
+
+        return route('media.show', ['id' => $media->id]);
+    }
+
+    /**
+     * Get secure download URL for media
+     */
+    public function getSecureDownloadUrl($media): string
+    {
+        return route('media.download', ['id' => $media->id]);
+    }
+
+    public function getContractCopyUrl(): string
+    {
+        $media = $this->getFirstMedia('contracts_copy');
+        return $media ? route('media.show', $media->id) : '';
+    }
+
+    public function getContractCopyDownloadUrl(): string
+    {
+        $media = $this->getFirstMedia('contracts_copy');
+        return $media ? route('media.download', $media->id) : '';
     }
 }
