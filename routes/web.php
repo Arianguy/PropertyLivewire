@@ -68,6 +68,7 @@ Route::middleware(['auth', 'role:Super Admin'])->group(function () {
     Route::get('/tenants', App\Livewire\Tenants\Table::class)->name('tenants.table');
     Route::get('/tenants/create', App\Livewire\Tenants\Create::class)->name('tenants.create');
     Route::get('/tenants/{tenant}/edit', App\Livewire\Tenants\Edit::class)->name('tenants.edit');
+    Route::get('/contracts/{contract}/terminate', App\Livewire\Contracts\Terminate::class)->name('contracts.terminate');
 });
 
 // Contract Management Routes

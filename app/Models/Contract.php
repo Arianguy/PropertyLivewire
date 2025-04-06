@@ -20,17 +20,20 @@ class Contract extends Model implements HasMedia
         'property_id',
         'cstart',
         'cend',
+        'close_date',
         'amount',
         'sec_amt',
         'ejari',
         'validity',
         'type',
-        'previous_contract_id'
+        'previous_contract_id',
+        'termination_reason'
     ];
 
     protected $casts = [
         'cstart' => 'date',
         'cend' => 'date',
+        'close_date' => 'date',
         'amount' => 'decimal:2',
         'sec_amt' => 'decimal:2',
     ];
@@ -57,6 +60,16 @@ class Contract extends Model implements HasMedia
     public function previousContract(): BelongsTo
     {
         return $this->belongsTo(Contract::class, 'previous_contract_id');
+    }
+
+    /**
+     * Get the previous contracts for the tenant.
+     */
+    public function previousContracts()
+    {
+        return $this->belongsTo(Contract::class, 'tenant_id', 'tenant_id')
+            ->where('id', '<', $this->id)
+            ->orderBy('id', 'desc');
     }
 
     /**
