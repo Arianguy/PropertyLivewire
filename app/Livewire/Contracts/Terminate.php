@@ -5,6 +5,7 @@ namespace App\Livewire\Contracts;
 use App\Models\Contract;
 use Livewire\Component;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class Terminate extends Component
@@ -25,6 +26,12 @@ class Terminate extends Component
 
     public function mount(Contract $contract)
     {
+        // Check if user has permission to terminate contracts
+        if (!Auth::user()->hasRole('Super Admin') && !Auth::user()->can('terminate contracts')) {
+            return redirect()->route('contracts.show', $contract)
+                ->with('error', 'You do not have permission to terminate contracts.');
+        }
+
         $this->contract = $contract;
         $this->close_date = now()->format('Y-m-d');
         $this->amount = $contract->amount;
@@ -32,6 +39,15 @@ class Terminate extends Component
 
     public function terminate()
     {
+        // Check if user has permission to terminate contracts
+        if (!Auth::user()->hasRole('Super Admin') && !Auth::user()->can('terminate contracts')) {
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => 'You do not have permission to terminate contracts.'
+            ]);
+            return redirect()->route('contracts.show', $this->contract);
+        }
+
         $this->validate();
 
         try {
@@ -45,6 +61,9 @@ class Terminate extends Component
                 'type' => 'terminated',
                 'termination_reason' => $this->reason
             ]);
+
+            // Update the property's status to 'VACANT'
+            $this->contract->property->update(['status' => 'VACANT']);
 
             DB::commit();
 

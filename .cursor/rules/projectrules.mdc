@@ -30,6 +30,7 @@ PHP/Laravel
 - Utilize Laravel's Eloquent ORM for database interactions.
 - Use Laravel's query builder for complex database queries.
 - Implement proper database migrations and seeders.
+- When spatie roles & Permissions is used , ensure that all pages are created keeping in mind the permission based access will granted.
 
 Livewire
 

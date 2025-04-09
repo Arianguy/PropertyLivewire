@@ -1,3 +1,10 @@
+@php
+if (!auth()->user()->hasRole('Super Admin') && !auth()->user()->can('terminate contracts')) {
+    header('Location: ' . route('contracts.show', $contract));
+    exit;
+}
+@endphp
+
 <div>
     <div class="mx-auto max-w-3xl">
         <div class="flex items-center justify-between">

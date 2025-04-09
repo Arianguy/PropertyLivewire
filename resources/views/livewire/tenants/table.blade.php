@@ -4,12 +4,14 @@
             <h2 class="text-2xl font-extrabold text-gray-900 dark:text-gray-100">Tenants</h2>
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Manage property tenants</p>
         </div>
+        @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('create tenants'))
         <a href="{{ route('tenants.create') }}" class="flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
             <svg class="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
             Add Tenant
         </a>
+        @endif
     </div>
 
     <div class="bg-white dark:bg-gray-800 shadow-xl rounded-lg overflow-hidden">
@@ -50,8 +52,13 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $tenant->passport_no }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $tenant->visa_expiry->format('Y-m-d') }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('edit tenants'))
                                     <a href="{{ route('tenants.edit', $tenant) }}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-3">Edit</a>
+                                    @endif
+
+                                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('delete tenants'))
                                     <button wire:click="delete({{ $tenant->id }})" wire:confirm="Are you sure you want to delete this tenant?" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+                                    @endif
                                 </td>
                             </tr>
                         @empty

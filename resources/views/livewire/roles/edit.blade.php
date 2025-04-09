@@ -40,7 +40,7 @@
                                     <div class="space-y-2">
                                         @foreach($modulePermissions->filter(fn($p) => str_contains($p->name, 'view')) as $permission)
                                             <div class="flex items-center">
-                                                <input type="checkbox" wire:model="permissions" value="{{ $permission->id }}" id="permission_{{ $permission->id }}" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600">
+                                                <input type="checkbox" wire:model="permissions" value="{{ $permission->name }}" id="permission_{{ $permission->id }}" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600">
                                                 <label for="permission_{{ $permission->id }}" class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ str_replace('view ', '', $permission->name) }}</label>
                                             </div>
                                         @endforeach
@@ -53,7 +53,7 @@
                                     <div class="space-y-2">
                                         @foreach($modulePermissions->filter(fn($p) => str_contains($p->name, 'create')) as $permission)
                                             <div class="flex items-center">
-                                                <input type="checkbox" wire:model="permissions" value="{{ $permission->id }}" id="permission_{{ $permission->id }}" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600">
+                                                <input type="checkbox" wire:model="permissions" value="{{ $permission->name }}" id="permission_{{ $permission->id }}" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600">
                                                 <label for="permission_{{ $permission->id }}" class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ str_replace('create ', '', $permission->name) }}</label>
                                             </div>
                                         @endforeach
@@ -66,7 +66,7 @@
                                     <div class="space-y-2">
                                         @foreach($modulePermissions->filter(fn($p) => str_contains($p->name, 'edit')) as $permission)
                                             <div class="flex items-center">
-                                                <input type="checkbox" wire:model="permissions" value="{{ $permission->id }}" id="permission_{{ $permission->id }}" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600">
+                                                <input type="checkbox" wire:model="permissions" value="{{ $permission->name }}" id="permission_{{ $permission->id }}" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600">
                                                 <label for="permission_{{ $permission->id }}" class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ str_replace('edit ', '', $permission->name) }}</label>
                                             </div>
                                         @endforeach
@@ -79,12 +79,31 @@
                                     <div class="space-y-2">
                                         @foreach($modulePermissions->filter(fn($p) => str_contains($p->name, 'delete')) as $permission)
                                             <div class="flex items-center">
-                                                <input type="checkbox" wire:model="permissions" value="{{ $permission->id }}" id="permission_{{ $permission->id }}" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600">
+                                                <input type="checkbox" wire:model="permissions" value="{{ $permission->name }}" id="permission_{{ $permission->id }}" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600">
                                                 <label for="permission_{{ $permission->id }}" class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ str_replace('delete ', '', $permission->name) }}</label>
                                             </div>
                                         @endforeach
                                     </div>
                                 </div>
+
+                                @if($moduleName === 'Contract Management')
+                                <!-- Special Contract permissions -->
+                                <div class="rounded-md bg-gray-50 dark:bg-gray-800 p-3">
+                                    <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Special Access</h4>
+                                    <div class="space-y-2">
+                                        @php
+                                            $specialPermissions = $modulePermissions->filter(fn($p) => str_contains($p->name, 'renew') || str_contains($p->name, 'terminate'));
+                                        @endphp
+
+                                        @foreach($specialPermissions as $permission)
+                                            <div class="flex items-center">
+                                                <input type="checkbox" wire:model="permissions" value="{{ $permission->name }}" id="permission_{{ $permission->id }}" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600">
+                                                <label for="permission_{{ $permission->id }}" class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ ucfirst($permission->name) }}</label>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                @endif
                             </div>
                         </div>
                     @endforeach

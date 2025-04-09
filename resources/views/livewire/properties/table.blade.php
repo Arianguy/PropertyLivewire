@@ -6,10 +6,12 @@
                 Manage your real estate properties and their details.
             </p>
         </div>
+        @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('create properties'))
         <a href="{{ route('properties.create') }}" class="inline-flex items-center gap-x-1.5 rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600">
             <flux:icon name="plus" class="-ml-0.5 h-5 w-5" />
             Create Property
         </a>
+        @endif
     </div>
 
     <div class="mt-4 flex items-center justify-between">
@@ -82,14 +84,19 @@
                                     </td>
                                     <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                         <div class="flex justify-end gap-2">
+                                            @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('edit properties'))
                                             <a href="{{ route('properties.edit', $property) }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-500 dark:hover:text-primary-400">
                                                 <flux:icon name="pencil-square" class="h-5 w-5" />
                                                 <span class="sr-only">Edit</span>
                                             </a>
+                                            @endif
+
+                                            @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('delete properties'))
                                             <button type="button" wire:click="deleteProperty({{ $property->id }})" wire:confirm="Are you sure you want to delete this property?" class="text-red-600 hover:text-red-900 dark:text-red-500 dark:hover:text-red-400">
                                                 <flux:icon name="trash" class="h-5 w-5" />
                                                 <span class="sr-only">Delete</span>
                                             </button>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -97,9 +104,11 @@
                                 <tr>
                                     <td colspan="6" class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-gray-100 sm:pl-6 text-center">
                                         No properties found.
+                                        @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('create properties'))
                                         <a href="{{ route('properties.create') }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-500 dark:hover:text-primary-400">
                                             Create your first property
                                         </a>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforelse

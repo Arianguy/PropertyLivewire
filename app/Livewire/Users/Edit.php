@@ -6,6 +6,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
+use Illuminate\Support\Facades\Auth;
 
 class Edit extends Component
 {
@@ -18,10 +19,15 @@ class Edit extends Component
 
     public function mount(User $user)
     {
+        // Check permission
+        if (!Auth::user()->hasRole('Super Admin') && !Auth::user()->can('edit users')) {
+            abort(403, 'Unauthorized action. You do not have permission to edit users.');
+        }
+
         $this->user = $user;
         $this->name = $user->name;
         $this->email = $user->email;
-        $this->roles = $user->roles->pluck('id')->toArray();
+        $this->roles = $user->roles->pluck('name')->toArray();
     }
 
     public function rules()
@@ -31,7 +37,7 @@ class Edit extends Component
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $this->user->id],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'roles' => ['array'],
-            'roles.*' => ['exists:roles,id'],
+            'roles.*' => ['exists:roles,name'],
         ];
     }
 
@@ -49,6 +55,8 @@ class Edit extends Component
         }
 
         $this->user->update($data);
+
+        // Directly sync role names
         $this->user->syncRoles($this->roles);
 
         $this->dispatch('notify', [

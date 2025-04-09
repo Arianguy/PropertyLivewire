@@ -45,7 +45,7 @@
                 <div class="mt-2 space-y-2">
                     @foreach($availableRoles as $role)
                         <div class="flex items-center">
-                            <input type="checkbox" wire:model="roles" value="{{ $role->id }}" id="role_{{ $role->id }}" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600">
+                            <input type="checkbox" wire:model="roles" value="{{ $role->name }}" id="role_{{ $role->id }}" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600">
                             <label for="role_{{ $role->id }}" class="ml-2 text-sm text-gray-900 dark:text-gray-100">{{ $role->name }}</label>
                         </div>
                     @endforeach

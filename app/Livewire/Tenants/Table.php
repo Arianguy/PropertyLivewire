@@ -6,6 +6,7 @@ use App\Models\Tenant;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class Table extends Component
 {
@@ -13,6 +14,14 @@ class Table extends Component
 
     #[Rule('nullable|string|min:2')]
     public $search = '';
+
+    public function mount()
+    {
+        // Check authorization at component level
+        if (!Auth::user()->hasRole('Super Admin') && !Auth::user()->can('view tenants')) {
+            abort(403, 'Unauthorized action. You do not have permission to view tenants.');
+        }
+    }
 
     public function updatingSearch()
     {

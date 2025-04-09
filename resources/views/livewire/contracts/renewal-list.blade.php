@@ -70,14 +70,19 @@
                                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">${{ number_format($contract->amount, 2) }}</td>
                                         <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                             <div class="flex justify-end space-x-2">
+                                                @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view contracts'))
                                                 <a href="{{ route('contracts.show', $contract) }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-500 dark:hover:text-primary-400">
                                                     <flux:icon name="eye" class="h-5 w-5" />
                                                     <span class="sr-only">View</span>
                                                 </a>
+                                                @endif
+
+                                                @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('renew contracts'))
                                                 <a href="{{ route('contracts.renew', $contract) }}" class="text-green-600 hover:text-green-900 dark:text-green-500 dark:hover:text-green-400">
                                                     <flux:icon name="arrow-path" class="h-5 w-5" />
                                                     <span class="sr-only">Renew</span>
                                                 </a>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>
@@ -108,12 +113,17 @@
                                 Contract #{{ $contract->name }}
                             </h3>
                             <div class="flex space-x-2">
+                                @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view contracts'))
                                 <a href="{{ route('contracts.show', $contract) }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-500 dark:hover:text-primary-400">
                                     <flux:icon name="eye" class="h-5 w-5" />
                                 </a>
+                                @endif
+
+                                @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('renew contracts'))
                                 <a href="{{ route('contracts.renew', $contract) }}" class="text-green-600 hover:text-green-900 dark:text-green-500 dark:hover:text-green-400">
                                     <flux:icon name="arrow-path" class="h-5 w-5" />
                                 </a>
+                                @endif
                             </div>
                         </div>
                         <div class="border-t border-gray-200 dark:border-gray-700">

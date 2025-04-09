@@ -19,53 +19,119 @@
 
             <flux:spacer />
 
+            @php
+                $showManagementMenu = auth()->user()->hasRole('Super Admin') ||
+                                      auth()->user()->can('view properties') ||
+                                      auth()->user()->can('view owners') ||
+                                      auth()->user()->can('view tenants');
+            @endphp
+
+            @if($showManagementMenu)
+            <flux:dropdown>
+                <flux:navbar.item icon:trailing="chevron-down">Management</flux:navbar.item>
+                <flux:navmenu>
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view properties'))
+                    <flux:navmenu.item :href="route('properties.table')" :current="request()->routeIs('properties.*')" wire:navigate>
+                        <div class="flex items-center gap-2">
+                            <flux:icon name="building-office" class="h-5 w-5" />
+                            <span>Properties</span>
+                        </div>
+                    </flux:navmenu.item>
+                    @endif
+
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view owners'))
+                    <flux:navmenu.item :href="route('owners.table')" :current="request()->routeIs('owners.*')" wire:navigate>
+                        <div class="flex items-center gap-2">
+                            <flux:icon name="users" class="h-5 w-5" />
+                            <span>Owners</span>
+                        </div>
+                    </flux:navmenu.item>
+                    @endif
+
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view tenants'))
+                    <flux:navmenu.item :href="route('tenants.table')" :current="request()->routeIs('tenants.*')" wire:navigate>
+                        <div class="flex items-center gap-2">
+                            <flux:icon name="user-group" class="h-5 w-5" />
+                            <span>Tenants</span>
+                        </div>
+                    </flux:navmenu.item>
+                    @endif
+                </flux:navmenu>
+            </flux:dropdown>
+            @endif
+
+            @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view contracts'))
+            <flux:dropdown>
+                <flux:navbar.item icon:trailing="chevron-down">Contracts</flux:navbar.item>
+                <flux:navmenu>
+                    <flux:navmenu.item :href="route('contracts.table')" :current="request()->routeIs('contracts.*')" wire:navigate>
+                        <div class="flex items-center gap-2">
+                            <flux:icon name="document-text" class="h-5 w-5" />
+                            <span>Contracts</span>
+                        </div>
+                    </flux:navmenu.item>
+
+                    <flux:navmenu.item :href="route('contracts.renewal-list')" :current="request()->routeIs('contracts.renewal-list')" wire:navigate>
+                        <div class="flex items-center gap-2">
+                            <flux:icon name="arrow-path" class="h-5 w-5" />
+                            <span>Contract Renewals</span>
+                        </div>
+                    </flux:navmenu.item>
+                </flux:navmenu>
+            </flux:dropdown>
+            @endif
+
+            @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view roles'))
             <flux:dropdown>
                 <flux:navbar.item icon:trailing="chevron-down">Config</flux:navbar.item>
                 <flux:navmenu>
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view roles'))
                     <flux:navmenu.item :href="route('roles.table')" :current="request()->routeIs('roles.table')" wire:navigate>
                         <div class="flex items-center gap-2">
                             <flux:icon name="shield-check" class="h-5 w-5" />
                             <span>Roles</span>
                         </div>
                     </flux:navmenu.item>
+                    @endif
+
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view permissions'))
                     <flux:navmenu.item :href="route('permissions.table')" :current="request()->routeIs('permissions.table')" wire:navigate>
                         <div class="flex items-center gap-2">
                             <flux:icon name="key" class="h-5 w-5" />
                             <span>Permissions</span>
                         </div>
                     </flux:navmenu.item>
+                    @endif
+
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view modules'))
                     <flux:navmenu.item :href="route('modules.table')" :current="request()->routeIs('modules.table')" wire:navigate>
                         <div class="flex items-center gap-2">
                             <flux:icon name="squares-2x2" class="h-5 w-5" />
                             <span>Modules</span>
                         </div>
                     </flux:navmenu.item>
+                    @endif
+
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view permission groups'))
                     <flux:navmenu.item :href="route('permission-groups.table')" :current="request()->routeIs('permission-groups.table')" wire:navigate>
                         <div class="flex items-center gap-2">
                             <flux:icon name="folder" class="h-5 w-5" />
                             <span>Permission Groups</span>
                         </div>
                     </flux:navmenu.item>
+                    @endif
+
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view users'))
                     <flux:navmenu.item :href="route('users.table')" :current="request()->routeIs('users.table')" wire:navigate>
                         <div class="flex items-center gap-2">
                             <flux:icon name="users" class="h-5 w-5" />
                             <span>Users</span>
                         </div>
                     </flux:navmenu.item>
+                    @endif
                 </flux:navmenu>
             </flux:dropdown>
-
-
-{{--
-            <flux:navlist variant="outline">
-                <flux:navlist.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                {{ __('Repository') }}
-                </flux:navlist.item>
-
-                <flux:navlist.item icon="book-open-text" href="https://laravel.com/docs/starter-kits" target="_blank">
-                {{ __('Documentation') }}
-                </flux:navlist.item>
-            </flux:navlist> --}}
+            @endif
 
             <!-- Desktop User Menu -->
             <flux:dropdown position="bottom" align="start">

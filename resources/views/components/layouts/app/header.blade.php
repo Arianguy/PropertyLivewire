@@ -16,32 +16,50 @@
                     {{ __('Dashboard') }}
                 </flux:navbar.item>
 
+                @php
+                    $showManagementMenu = auth()->user()->hasRole('Super Admin') ||
+                                          auth()->user()->can('view properties') ||
+                                          auth()->user()->can('view owners') ||
+                                          auth()->user()->can('view tenants');
+                @endphp
+
+                @if($showManagementMenu)
                 <flux:dropdown>
                     <flux:navbar.item icon:trailing="chevron-down">Management</flux:navbar.item>
                     <flux:navmenu>
-                        <flux:navmenu.item :href="route('owners.table')" :current="request()->routeIs('owners.*')" wire:navigate>
-                            <div class="flex items-center gap-2">
-                                <flux:icon name="users" class="h-5 w-5" />
-                                <span>Owners</span>
-                            </div>
-                        </flux:navmenu.item>
+                        @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view properties'))
                         <flux:navmenu.item :href="route('properties.table')" :current="request()->routeIs('properties.*')" wire:navigate>
                             <div class="flex items-center gap-2">
                                 <flux:icon name="building-office" class="h-5 w-5" />
                                 <span>Properties</span>
                             </div>
                         </flux:navmenu.item>
-                        <flux:navmenu.item :href="route('tenants.table')" :current="request()->routeIs('tenants.*')" wire:navigate>
+                        @endif
+
+                        @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view owners'))
+                        <flux:navmenu.item :href="route('owners.table')" :current="request()->routeIs('owners.*')" wire:navigate>
                             <div class="flex items-center gap-2">
                                 <flux:icon name="users" class="h-5 w-5" />
+                                <span>Owners</span>
+                            </div>
+                        </flux:navmenu.item>
+                        @endif
+
+                        @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view tenants'))
+                        <flux:navmenu.item :href="route('tenants.table')" :current="request()->routeIs('tenants.*')" wire:navigate>
+                            <div class="flex items-center gap-2">
+                                <flux:icon name="user-group" class="h-5 w-5" />
                                 <span>Tenants</span>
                             </div>
                         </flux:navmenu.item>
+                        @endif
                     </flux:navmenu>
                 </flux:dropdown>
+                @endif
 
+                @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view contracts'))
                 <flux:dropdown>
-                    <flux:navbar.item icon:trailing="chevron-down">Transaction</flux:navbar.item>
+                    <flux:navbar.item icon:trailing="chevron-down">Transactions</flux:navbar.item>
                     <flux:navmenu>
                         <flux:navmenu.item :href="route('contracts.table')" :current="request()->routeIs('contracts.*')" wire:navigate>
                             <div class="flex items-center gap-2">
@@ -50,46 +68,74 @@
                             </div>
                         </flux:navmenu.item>
 
+
                     </flux:navmenu>
                 </flux:dropdown>
+                @endif
             </flux:navbar>
 
             <flux:spacer />
+
+            @php
+                $showConfigMenu = auth()->user()->hasRole('Super Admin') ||
+                                 auth()->user()->can('view roles') ||
+                                 auth()->user()->can('view permissions') ||
+                                 auth()->user()->can('view modules') ||
+                                 auth()->user()->can('view permission groups') ||
+                                 auth()->user()->can('view users');
+            @endphp
+
+            @if($showConfigMenu)
             <flux:dropdown>
                 <flux:navbar.item icon:trailing="chevron-down">Config</flux:navbar.item>
                 <flux:navmenu>
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view roles'))
                     <flux:navmenu.item :href="route('roles.table')" :current="request()->routeIs('roles.table')" wire:navigate>
                         <div class="flex items-center gap-2">
                             <flux:icon name="shield-check" class="h-5 w-5" />
                             <span>Roles</span>
                         </div>
                     </flux:navmenu.item>
+                    @endif
+
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view permissions'))
                     <flux:navmenu.item :href="route('permissions.table')" :current="request()->routeIs('permissions.table')" wire:navigate>
                         <div class="flex items-center gap-2">
                             <flux:icon name="key" class="h-5 w-5" />
                             <span>Permissions</span>
                         </div>
                     </flux:navmenu.item>
+                    @endif
+
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view modules'))
                     <flux:navmenu.item :href="route('modules.table')" :current="request()->routeIs('modules.table')" wire:navigate>
                         <div class="flex items-center gap-2">
                             <flux:icon name="squares-2x2" class="h-5 w-5" />
                             <span>Modules</span>
                         </div>
                     </flux:navmenu.item>
+                    @endif
+
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view permission groups'))
                     <flux:navmenu.item :href="route('permission-groups.table')" :current="request()->routeIs('permission-groups.table')" wire:navigate>
                         <div class="flex items-center gap-2">
                             <flux:icon name="folder" class="h-5 w-5" />
                             <span>Permission Groups</span>
                         </div>
                     </flux:navmenu.item>
+                    @endif
+
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view users'))
                     <flux:navmenu.item :href="route('users.table')" :current="request()->routeIs('users.table')" wire:navigate>
                         <div class="flex items-center gap-2">
                             <flux:icon name="users" class="h-5 w-5" />
                             <span>Users</span>
                         </div>
                     </flux:navmenu.item>
+                    @endif
                 </flux:navmenu>
             </flux:dropdown>
+            @endif
 
             <flux:navbar class="mr-1.5 space-x-0.5 py-0!">
                 <flux:tooltip :content="__('Search')" position="bottom">
@@ -116,10 +162,11 @@
             </flux:navbar>
 
             <!-- Desktop User Menu -->
-            <flux:dropdown position="top" align="end">
+            <flux:dropdown position="bottom" align="end">
                 <flux:profile
-                    class="cursor-pointer"
+                    :name="auth()->user()->name"
                     :initials="auth()->user()->initials()"
+                    icon-trailing="chevron-down"
                 />
 
                 <flux:menu>
@@ -169,44 +216,72 @@
             </a>
 
             <flux:navlist variant="outline">
-                <flux:navlist.group :heading="__('Platform')">
-                    <flux:navlist.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                    {{ __('Dashboard') }}
-                    </flux:navlist.item>
+                <flux:navlist.group :heading="__('Platform')" class="grid">
+                    <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
                 </flux:navlist.group>
 
-                <flux:navlist.group :heading="__('Management')">
-                    <flux:navlist.item icon="users" :href="route('owners.table')" :current="request()->routeIs('owners.*')" wire:navigate>
-                    {{ __('Owners') }}
-                    </flux:navlist.item>
-                    <flux:navlist.item icon="building-office" :href="route('properties.table')" :current="request()->routeIs('properties.*')" wire:navigate>
-                    {{ __('Properties') }}
-                    </flux:navlist.item>
-                    <flux:navlist.item icon="users" :href="route('tenants.table')" :current="request()->routeIs('tenants.*')" wire:navigate>
-                    {{ __('Tenants') }}
-                    </flux:navlist.item>
+                @php
+                    $showManagementMenu = auth()->user()->hasRole('Super Admin') ||
+                                          auth()->user()->can('view properties') ||
+                                          auth()->user()->can('view owners') ||
+                                          auth()->user()->can('view tenants');
+                @endphp
+
+                @if($showManagementMenu)
+                <flux:navlist.group :heading="__('Management')" class="grid">
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view properties'))
+                    <flux:navlist.item icon="building-office" :href="route('properties.table')" :current="request()->routeIs('properties.*')" wire:navigate>{{ __('Properties') }}</flux:navlist.item>
+                    @endif
+
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view owners'))
+                    <flux:navlist.item icon="users" :href="route('owners.table')" :current="request()->routeIs('owners.*')" wire:navigate>{{ __('Owners') }}</flux:navlist.item>
+                    @endif
+
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view tenants'))
+                    <flux:navlist.item icon="user-group" :href="route('tenants.table')" :current="request()->routeIs('tenants.*')" wire:navigate>{{ __('Tenants') }}</flux:navlist.item>
+                    @endif
                 </flux:navlist.group>
+                @endif
 
-                <flux:navlist.group :heading="__('Transaction')">
-                    <flux:navlist.item icon="document-text" :href="route('contracts.table')" :current="request()->routeIs('contracts.*')" wire:navigate>
-                    {{ __('Contracts') }}
-                    </flux:navlist.item>
-                    <flux:navlist.item icon="arrow-path" :href="route('contracts.renewal-list')" :current="request()->routeIs('contracts.renewal-list')" wire:navigate>
-                    {{ __('Contract Renewals') }}
-                    </flux:navlist.item>
+                @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view contracts'))
+                <flux:navlist.group :heading="__('Contracts')" class="grid">
+                    <flux:navlist.item icon="document-text" :href="route('contracts.table')" :current="request()->routeIs('contracts.*')" wire:navigate>{{ __('Contracts') }}</flux:navlist.item>
+                    <flux:navlist.item icon="arrow-path" :href="route('contracts.renewal-list')" :current="request()->routeIs('contracts.renewal-list')" wire:navigate>{{ __('Contract Renewals') }}</flux:navlist.item>
                 </flux:navlist.group>
-            </flux:navlist>
+                @endif
 
-            <flux:spacer />
+                @php
+                    $showConfigMenu = auth()->user()->hasRole('Super Admin') ||
+                                     auth()->user()->can('view roles') ||
+                                     auth()->user()->can('view permissions') ||
+                                     auth()->user()->can('view modules') ||
+                                     auth()->user()->can('view permission groups') ||
+                                     auth()->user()->can('view users');
+                @endphp
 
-            <flux:navlist variant="outline">
-                <flux:navlist.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                {{ __('Repository') }}
-                </flux:navlist.item>
+                @if($showConfigMenu)
+                <flux:navlist.group :heading="__('Configuration')" class="grid">
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view roles'))
+                    <flux:navlist.item icon="shield-check" :href="route('roles.table')" :current="request()->routeIs('roles.*')" wire:navigate>{{ __('Roles') }}</flux:navlist.item>
+                    @endif
 
-                <flux:navlist.item icon="book-open-text" href="https://laravel.com/docs/starter-kits" target="_blank">
-                {{ __('Documentation') }}
-                </flux:navlist.item>
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view permissions'))
+                    <flux:navlist.item icon="key" :href="route('permissions.table')" :current="request()->routeIs('permissions.*')" wire:navigate>{{ __('Permissions') }}</flux:navlist.item>
+                    @endif
+
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view modules'))
+                    <flux:navlist.item icon="squares-2x2" :href="route('modules.table')" :current="request()->routeIs('modules.*')" wire:navigate>{{ __('Modules') }}</flux:navlist.item>
+                    @endif
+
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view permission groups'))
+                    <flux:navlist.item icon="folder" :href="route('permission-groups.table')" :current="request()->routeIs('permission-groups.*')" wire:navigate>{{ __('Permission Groups') }}</flux:navlist.item>
+                    @endif
+
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view users'))
+                    <flux:navlist.item icon="users" :href="route('users.table')" :current="request()->routeIs('users.*')" wire:navigate>{{ __('Users') }}</flux:navlist.item>
+                    @endif
+                </flux:navlist.group>
+                @endif
             </flux:navlist>
         </flux:sidebar>
 

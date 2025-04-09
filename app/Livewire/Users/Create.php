@@ -6,6 +6,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
+use Illuminate\Support\Facades\Auth;
 
 class Create extends Component
 {
@@ -15,6 +16,14 @@ class Create extends Component
     public $password_confirmation = '';
     public $roles = [];
 
+    public function mount()
+    {
+        // Check permission
+        if (!Auth::user()->hasRole('Super Admin') && !Auth::user()->can('create users')) {
+            abort(403, 'Unauthorized action. You do not have permission to create users.');
+        }
+    }
+
     public function rules()
     {
         return [
@@ -22,7 +31,7 @@ class Create extends Component
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'roles' => ['array'],
-            'roles.*' => ['exists:roles,id'],
+            'roles.*' => ['exists:roles,name'],
         ];
     }
 

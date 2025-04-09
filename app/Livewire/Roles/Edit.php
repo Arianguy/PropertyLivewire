@@ -18,7 +18,7 @@ class Edit extends Component
         $this->role = $role;
         $this->name = $role->name;
         $this->description = $role->description;
-        $this->permissions = $role->permissions->pluck('id')->toArray();
+        $this->permissions = $role->permissions->pluck('name')->toArray();
     }
 
     public function rules()
@@ -27,7 +27,7 @@ class Edit extends Component
             'name' => ['required', 'string', 'max:255', 'unique:roles,name,' . $this->role->id],
             'description' => ['nullable', 'string', 'max:255'],
             'permissions' => ['required', 'array'],
-            'permissions.*' => ['exists:permissions,id'],
+            'permissions.*' => ['exists:permissions,name'],
         ];
     }
 
@@ -40,6 +40,7 @@ class Edit extends Component
             'description' => $this->description,
         ]);
 
+        // Sync permissions directly
         $this->role->syncPermissions($this->permissions);
 
         $this->dispatch('notify', [
@@ -58,6 +59,10 @@ class Edit extends Component
 
         // Group permissions by module name, handle null modules
         $groupedPermissions = $permissions->groupBy(function ($permission) {
+            // Check if it's a contract permission
+            if (strpos($permission->name, 'contract') !== false) {
+                return 'Contract Management';
+            }
             return $permission->module ? $permission->module->name : 'Other';
         });
 

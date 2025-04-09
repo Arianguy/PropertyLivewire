@@ -8,6 +8,7 @@ use App\Models\Tenant;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class Renew extends Component
@@ -42,6 +43,12 @@ class Renew extends Component
 
     public function mount(Contract $contract)
     {
+        // Check if user has permission to renew contracts
+        if (!Auth::user()->hasRole('Super Admin') && !Auth::user()->can('renew contracts')) {
+            return redirect()->route('contracts.show', $contract)
+                ->with('error', 'You do not have permission to renew contracts.');
+        }
+
         $this->contract = $contract;
         $this->tenant_id = $contract->tenant_id;
         $this->property_id = $contract->property_id;
@@ -55,40 +62,41 @@ class Renew extends Component
 
     public function generateUniqueRandomName($length = 5)
     {
-        $characters = 'ABCDEFGHIJKLMNPQRSTUVWXYZ123456789';
-        $randomName = '';
-        $attempts = 0;
-        $maxAttempts = 10;
-
-        do {
-            $randomName = '';
-            for ($i = 0; $i < $length; $i++) {
-                $randomName .= $characters[rand(0, strlen($characters) - 1)];
-            }
-            $attempts++;
-        } while (Contract::where('name', $randomName)->exists() && $attempts < $maxAttempts);
-
-        if ($attempts === $maxAttempts) {
-            throw new \Exception('Unable to generate a unique random name after multiple attempts.');
+        $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $randomString = '';
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[rand(0, strlen($characters) - 1)];
         }
 
-        return $randomName;
+        $date = now()->format('Ymd');
+        $name = "RN{$date}-{$randomString}";
+
+        // Check if this name already exists
+        if (Contract::where('name', $name)->exists()) {
+            // Regenerate a new name
+            return $this->generateUniqueRandomName($length);
+        }
+
+        return $name;
     }
 
-    public function save()
+    public function renew()
     {
+        // Check if user has permission to renew contracts
+        if (!Auth::user()->hasRole('Super Admin') && !Auth::user()->can('renew contracts')) {
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => 'You do not have permission to renew contracts.'
+            ]);
+            return redirect()->route('contracts.show', $this->contract);
+        }
+
         $this->validate();
 
         try {
             DB::beginTransaction();
 
-            // Mark the previous contract as inactive and set security deposit to 0
-            $this->contract->update([
-                'validity' => 'NO',
-                'sec_amt' => 0
-            ]);
-
-            // Create the renewal contract
+            // Create a new contract as a renewal
             $renewalContract = Contract::create([
                 'name' => $this->name,
                 'tenant_id' => $this->tenant_id,
@@ -100,10 +108,13 @@ class Renew extends Component
                 'ejari' => $this->ejari,
                 'validity' => 'YES',
                 'type' => 'renewal',
-                'previous_contract_id' => $this->contract->id
+                'previous_contract_id' => $this->contract->id,
             ]);
 
-            // Handle multiple file uploads
+            // Update the property status to LEASED
+            Property::find($this->property_id)->update(['status' => 'LEASED']);
+
+            // Handle file uploads
             if ($this->cont_copy) {
                 foreach ($this->cont_copy as $file) {
                     $renewalContract->addMedia($file->getRealPath())
