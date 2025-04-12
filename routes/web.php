@@ -164,6 +164,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/contracts/{contract}/terminate', App\Livewire\Contracts\Terminate::class)
         ->middleware('role_or_permission:Super Admin|edit contracts')
         ->name('contracts.terminate');
+
+    // Receipts routes
+    Route::get('/receipts', [App\Http\Controllers\ReceiptsController::class, 'index'])->name('receipts.index');
+    Route::get('/contracts/{contract}/receipts/create', [App\Http\Controllers\ReceiptsController::class, 'create'])->name('receipts.create');
+    Route::get('/contracts/{contract}/receipts', [App\Http\Controllers\ReceiptsController::class, 'listByContract'])->name('receipts.list-by-contract');
 });
 
 // Media secure routes

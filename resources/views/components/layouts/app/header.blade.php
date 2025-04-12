@@ -68,7 +68,12 @@
                             </div>
                         </flux:navmenu.item>
 
-
+                        <flux:navmenu.item :href="route('receipts.index')" :current="request()->routeIs('receipts.*')" wire:navigate>
+                            <div class="flex items-center gap-2">
+                                <flux:icon name="currency-dollar" class="h-5 w-5" />
+                                <span>Receipts</span>
+                            </div>
+                        </flux:navmenu.item>
                     </flux:navmenu>
                 </flux:dropdown>
                 @endif
@@ -244,9 +249,9 @@
                 @endif
 
                 @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view contracts'))
-                <flux:navlist.group :heading="__('Contracts')" class="grid">
+                <flux:navlist.group :heading="__('Transactions')" class="grid">
                     <flux:navlist.item icon="document-text" :href="route('contracts.table')" :current="request()->routeIs('contracts.*')" wire:navigate>{{ __('Contracts') }}</flux:navlist.item>
-                    <flux:navlist.item icon="arrow-path" :href="route('contracts.renewal-list')" :current="request()->routeIs('contracts.renewal-list')" wire:navigate>{{ __('Contract Renewals') }}</flux:navlist.item>
+                    <flux:navlist.item icon="currency-dollar" :href="route('receipts.index')" :current="request()->routeIs('receipts.*')" wire:navigate>{{ __('Receipts') }}</flux:navlist.item>
                 </flux:navlist.group>
                 @endif
 
