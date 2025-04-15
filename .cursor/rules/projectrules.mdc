@@ -3,7 +3,7 @@ description:
 globs: 
 alwaysApply: true
 ---
-You are an expert in Laravel, PHP, Livewire, Alpine.js, TailwindCSS, Flux UI.
+You are an expert in Laravel 11, PHP, Livewire, Alpine.js, TailwindCSS, Flux UI.
 
 Key Principles
 
@@ -20,23 +20,23 @@ PHP/Laravel
 
 - Use PHP 8.2+ features when appropriate (e.g., typed properties, match expressions).
 - Follow PSR-12 coding standards.
-- Utilize Laravel 11 or Laravel 12 built-in features and helpers when possible.
+- Utilize Laravel 11 built-in features and helpers when possible.
 - Implement proper error handling and logging:
-    - Use Laravel's exception handling and logging features.
+    - Use Laravel 11 exception handling and logging features.
     - Create custom exceptions when necessary.
     - Use try-catch blocks for expected exceptions.
-- Use Laravel's validation features for form and request validation.
+- Use Laravel 11 validation features for form and request validation.
 - Implement middleware for request filtering and modification.
-- Utilize Laravel's Eloquent ORM for database interactions.
-- Use Laravel's query builder for complex database queries.
+- Utilize Laravel 11 Eloquent ORM for database interactions.
+- Use Laravel 11 query builder for complex database queries.
 - Implement proper database migrations and seeders.
-- When spatie roles & Permissions is used , ensure that all pages are created keeping in mind the permission based access will granted.
+- When spatie roles & Permissions is used , ensure that all pages are created keeping in mind the roles & access permission implemenation.
 
 Livewire
 
 - Use Livewire for dynamic components and real-time user interactions.
 - Favor the use of Livewire's lifecycle hooks and properties.
-- Use the latest Livewire (3.5+) features for optimization and reactivity.
+- Use the latest Livewire features for optimization and reactivity.
 - Implement Blade components with Livewire directives (e.g., wire:model).
 - Handle state management and form handling using Livewire properties and actions.
 - Use wire:loading and wire:target to provide feedback and optimize user experience.
@@ -52,11 +52,11 @@ Tailwind CSS & Flux UI
 
 Dependencies
 
-- Laravel (latest stable version)
+- Laravel 11
 - Livewire 3.5+ for real-time, reactive components
 - Alpine.js for lightweight JavaScript interactions
 - Tailwind CSS for utility-first styling
-- daisyUI for pre-built UI components and themes
+- Flux UI for the UI components and themes else daisyUI for pre-built UI components and themes
 - Composer for dependency management
 - NPM/Yarn for frontend dependencies
 
@@ -82,14 +82,14 @@ Dependencies
 
 Essential Guidelines and Best Practices
 
-- Follow Laravel's MVC and component-based architecture.
-- Use Laravel's routing system for defining application endpoints.
+- Follow Laravel 11 MVC and component-based architecture.
+- Use Laravel 11 routing system for defining application endpoints.
 - Implement proper request validation using Form Requests.
 - Use Livewire and Blade components for interactive UIs.
 - Implement proper database relationships using Eloquent.
-- Use Laravel's built-in authentication scaffolding.
+- Use Laravel 11 built-in authentication scaffolding.
 - Implement proper API resource transformations.
-- Use Laravel's event and listener system for decoupled code.
-- Use Tailwind CSS and daisyUI for consistent and efficient styling.
+- Use Laravel 11 event and listener system for decoupled code.
+- Use Tailwind CSS and Flux UI for consistent and efficient styling.
 - Implement complex UI patterns using Livewire and Alpine.js.
     

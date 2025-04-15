@@ -1,8 +1,9 @@
 <?php
 
+use Livewire\Volt\Volt;
 use App\Livewire\Config\RolesTable;
 use Illuminate\Support\Facades\Route;
-use Livewire\Volt\Volt;
+use App\Http\Controllers\ReceiptsController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -23,7 +24,7 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     // Add diagnostic route
     Route::get('/diagnose-permissions', function () {
-        $user = auth()->user();
+        $user = auth()->guard('web')->user();
         $permission = \App\Models\Permission::where('name', 'view tenants')->first();
 
         return [
@@ -165,10 +166,34 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('role_or_permission:Super Admin|edit contracts')
         ->name('contracts.terminate');
 
-    // Receipts routes
-    Route::get('/receipts', [App\Http\Controllers\ReceiptsController::class, 'index'])->name('receipts.index');
-    Route::get('/contracts/{contract}/receipts/create', [App\Http\Controllers\ReceiptsController::class, 'create'])->name('receipts.create');
-    Route::get('/contracts/{contract}/receipts', [App\Http\Controllers\ReceiptsController::class, 'listByContract'])->name('receipts.list-by-contract');
+    // Receipts routes - Converted to Livewire
+    Route::get('/receipts', App\Livewire\Receipts\Index::class)
+        ->middleware('role_or_permission:Super Admin|view receipts')
+        ->name('receipts.index');
+
+    Route::get('/receipts/create/{contract}', App\Livewire\Receipts\Create::class)
+        ->middleware('role_or_permission:Super Admin|create receipts')
+        ->name('receipts.create');
+
+    Route::get('/receipts/contracts/{contract}', App\Livewire\Receipts\ContractReceipts::class)
+        ->middleware('role_or_permission:Super Admin|view receipts')
+        ->name('receipts.list-by-contract');
+
+    Route::get('/receipts/{receipt}/edit', App\Livewire\Receipts\Edit::class)
+        ->middleware('role_or_permission:Super Admin|edit receipts')
+        ->name('receipts.edit');
+
+    Route::delete('/receipts/{receipt}', [ReceiptsController::class, 'destroy'])
+        ->middleware('role_or_permission:Super Admin|delete receipts')
+        ->name('receipts.destroy');
+
+    Route::get('/receipts/{receipt}/fix-media', [ReceiptsController::class, 'fixMedia'])
+        ->middleware('role_or_permission:Super Admin|edit receipts')
+        ->name('receipts.fix-media');
+
+    // These routes are now handled by Livewire component methods
+    // Route::put('/receipts/{receipt}', [ReceiptsController::class, 'update'])->name('receipts.update');
+    // Route::delete('/receipts/{receipt}', [ReceiptsController::class, 'destroy'])->name('receipts.destroy');
 });
 
 // Media secure routes

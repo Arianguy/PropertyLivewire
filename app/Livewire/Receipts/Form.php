@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Livewire\Receipts;
 
 use Livewire\Component;
 use App\Models\Receipt;
@@ -8,7 +8,7 @@ use App\Models\Contract;
 use Illuminate\Support\Facades\DB;
 use Livewire\WithFileUploads;
 
-class ReceiptForm extends Component
+class Form extends Component
 {
     use WithFileUploads;
 
@@ -105,7 +105,7 @@ class ReceiptForm extends Component
                     'cheque_bank' => $receiptData['payment_type'] === 'CHEQUE' ? $receiptData['cheque_bank'] : null,
                     'cheque_date' => $receiptData['payment_type'] === 'CHEQUE' ? $receiptData['cheque_date'] : null,
                     'transaction_reference' => $receiptData['payment_type'] === 'ONLINE_TRANSFER' ? $receiptData['transaction_reference'] : null,
-                    'status' => 'PENDING',
+                    'status' => $receiptData['payment_type'] === 'CASH' ? 'CLEARED' : 'PENDING',
                 ]);
 
                 if ($receiptData['payment_type'] === 'CHEQUE' && $receiptData['cheque_image']) {
@@ -122,6 +122,6 @@ class ReceiptForm extends Component
 
     public function render()
     {
-        return view('livewire.receipt-form');
+        return view('livewire.receipts.form');
     }
 }

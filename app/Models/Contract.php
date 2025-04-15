@@ -173,4 +173,12 @@ class Contract extends Model implements HasMedia
         $media = $this->getFirstMedia('contracts_copy');
         return $media ? route('media.download', $media->id) : '';
     }
+
+    /**
+     * Get the receipts for the contract.
+     */
+    public function receipts(): HasMany
+    {
+        return $this->hasMany(Receipt::class);
+    }
 }

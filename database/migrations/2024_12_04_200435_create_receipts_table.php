@@ -29,7 +29,7 @@ return new class extends Migration
             $table->string('transaction_reference')->nullable();
 
             // Status tracking
-            $table->enum('status', ['PENDING', 'COMPLETED', 'BOUNCED'])->default('PENDING');
+            $table->enum('status', ['PENDING', 'CLEARED', 'BOUNCED'])->default('PENDING');
             $table->date('deposit_date')->nullable();
             $table->string('deposit_account')->nullable();
             $table->text('remarks')->nullable();
