@@ -92,6 +92,16 @@
                 </div>
             </div>
 
+            <!-- Embed Receipt History Here in a Card -->
+            <div class="mt-6 overflow-hidden bg-white shadow dark:bg-gray-800 sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6">
+                    <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">Receipt History</h3>
+                </div>
+                <div class="border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:p-0">
+                     @livewire('receipts.contract-receipts', ['contract' => $contract->id], key('receipts-for-contract-' . $contract->id))
+                </div>
+            </div>
+
             @if($contract->getMedia('contracts_copy')->count() > 0)
             <div class="mt-6">
                 <div class="overflow-hidden bg-white shadow dark:bg-gray-800 sm:rounded-lg">
@@ -105,11 +115,9 @@
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center">
                                         <div class="flex-shrink-0">
-                                            @if($media->mime_type === 'application/pdf')
-                                            <flux:icon name="document" class="h-8 w-8 text-gray-400 dark:text-gray-500" />
-                                            @else
-                                            <flux:icon name="photo" class="h-8 w-8 text-gray-400 dark:text-gray-500" />
-                                            @endif
+                                            <svg class="h-8 w-8 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                            </svg>
                                         </div>
                                         <div class="ml-4">
                                             <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $media->name }}</div>
@@ -117,11 +125,10 @@
                                         </div>
                                     </div>
                                     <div class="flex items-center space-x-2">
-                                        <a href="{{ $media->getUrl() }}" target="_blank" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
-                                            <flux:icon name="eye" class="h-5 w-5" />
-                                        </a>
-                                        <a href="{{ $media->getUrl() }}" download class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
-                                            <flux:icon name="arrow-down-tray" class="h-5 w-5" />
+                                        <a href="{{ route('media.download', $media->id) }}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
+                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                            </svg>
                                         </a>
                                     </div>
                                 </div>

@@ -125,6 +125,7 @@
                             x-on:dragover.prevent="isDropping = true"
                             x-on:dragleave.prevent="isDropping = false"
                             x-on:drop.prevent="isDropping = false; handleFileDrop($event)"
+                            @media-deleted.window="files = []"
                             class="mt-2"
                         >
                             <div class="flex items-center justify-center w-full">
@@ -167,12 +168,14 @@
                     </div>
 
                     <!-- Existing Files -->
-                    @if(count($media) > 0)
-                    <div class="col-span-full">
-                        <h3 class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 mb-4">Uploaded Files</h3>
+                    <div class="col-span-full" wire:key="media-container">
+                        <h3 class="text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 mb-4">
+                            Uploaded Files {{ count($media) > 0 ? '(' . count($media) . ')' : '' }}
+                        </h3>
+                        @if(count($media) > 0)
                         <ul role="list" class="divide-y divide-gray-100 rounded-md border border-gray-200">
                             @foreach($media as $file)
-                            <li class="flex items-center justify-between py-4 pl-4 pr-5 text-sm leading-6">
+                            <li wire:key="media-{{ $file['id'] }}" class="flex items-center justify-between py-4 pl-4 pr-5 text-sm leading-6">
                                 <div class="flex w-0 flex-1 items-center">
                                     <svg class="h-5 w-5 flex-shrink-0 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
                                         <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
@@ -184,13 +187,23 @@
                                 </div>
                                 <div class="ml-4 flex flex-shrink-0 space-x-4">
                                     <a href="{{ $file['download_url'] }}" class="font-medium text-indigo-600 hover:text-indigo-500">Download</a>
-                                    <button type="button" wire:click="deleteMedia({{ $file['id'] }})" class="font-medium text-red-600 hover:text-red-500">Delete</button>
+                                    <button
+                                        type="button"
+                                        wire:click="deleteMedia({{ $file['id'] }})"
+                                        wire:loading.attr="disabled"
+                                        wire:target="deleteMedia({{ $file['id'] }})"
+                                        class="font-medium text-red-600 hover:text-red-500">
+                                        <span wire:loading.remove wire:target="deleteMedia({{ $file['id'] }})">Delete</span>
+                                        <span wire:loading wire:target="deleteMedia({{ $file['id'] }})">Deleting...</span>
+                                    </button>
                                 </div>
                             </li>
                             @endforeach
                         </ul>
+                        @else
+                        <p class="text-sm text-gray-500 dark:text-gray-400 italic">No files uploaded yet.</p>
+                        @endif
                     </div>
-                    @endif
                 </div>
             </div>
 

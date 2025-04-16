@@ -22,20 +22,26 @@
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <div>
                             <label for="payment_type_{{ $index }}" class="block text-xs font-medium text-gray-700">Payment Type</label>
-                            <select id="payment_type_{{ $index }}" wire:model.live="receipts.{{ $index }}.payment_type" class="mt-1 block w-full pl-3 pr-10 py-1.5 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md">
-                                <option value="CASH">Cash</option>
-                                <option value="CHEQUE">Cheque</option>
-                                <option value="ONLINE_TRANSFER">Online Transfer</option>
-                            </select>
+                            <div class="relative mt-1">
+                                <select id="payment_type_{{ $index }}" wire:model.live="receipts.{{ $index }}.payment_type"
+                                        class="appearance-none block w-full pl-3 pr-10 py-1.5 text-sm border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 bg-no-repeat bg-[position:right_0.5rem_center] bg-[size:1.5em_1.5em] bg-[url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")] dark:bg-[url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")]">
+                                    <option value="CASH">Cash</option>
+                                    <option value="CHEQUE">Cheque</option>
+                                    <option value="ONLINE_TRANSFER">Online Transfer</option>
+                                </select>
+                            </div>
                             @error("receipts.$index.payment_type") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
                         <div>
                             <label for="receipt_category_{{ $index }}" class="block text-xs font-medium text-gray-700">Category</label>
-                            <select id="receipt_category_{{ $index }}" wire:model.live="receipts.{{ $index }}.receipt_category" class="mt-1 block w-full pl-3 pr-10 py-1.5 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md">
-                                <option value="RENT">Rent</option>
-                                <option value="SECURITY_DEPOSIT">Security Deposit</option>
-                            </select>
+                            <div class="relative mt-1">
+                                <select id="receipt_category_{{ $index }}" wire:model.live="receipts.{{ $index }}.receipt_category"
+                                        class="appearance-none block w-full pl-3 pr-10 py-1.5 text-sm border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 bg-no-repeat bg-[position:right_0.5rem_center] bg-[size:1.5em_1.5em] bg-[url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")] dark:bg-[url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")]">
+                                    <option value="RENT">Rent</option>
+                                    <option value="SECURITY_DEPOSIT">Security Deposit</option>
+                                </select>
+                            </div>
                             @error("receipts.$index.receipt_category") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
@@ -57,14 +63,14 @@
                             <label for="receipt_date_{{ $index }}" class="block text-xs font-medium text-gray-700">
                                 @if($receipt['payment_type'] === 'CASH')
                                     Cash Receipt Date
-                                @elseif($receipt['payment_type'] === 'CHEQUE')
-                                    Cheque Date
-                                @else
+                                @elseif($receipt['payment_type'] === 'ONLINE_TRANSFER')
                                     Transfer Receipt Date
                                 @endif
                             </label>
+                            @if($receipt['payment_type'] === 'CASH' || $receipt['payment_type'] === 'ONLINE_TRANSFER')
                             <input type="date" id="receipt_date_{{ $index }}" wire:model="receipts.{{ $index }}.receipt_date" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm text-sm border-gray-300 rounded-md py-1.5" required>
                             @error("receipts.$index.receipt_date") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            @endif
                         </div>
 
                         @if($receipt['payment_type'] === 'CHEQUE')
@@ -76,21 +82,35 @@
 
                             <div>
                                 <label for="cheque_bank_{{ $index }}" class="block text-xs font-medium text-gray-700">Cheque Bank</label>
-                                <select id="cheque_bank_{{ $index }}" wire:model="receipts.{{ $index }}.cheque_bank" class="mt-1 block w-full pl-3 pr-10 py-1.5 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md" required>
-                                    <option value="">Select Bank</option>
-                                    <option value="ENBD">Emirates NBD</option>
-                                    <option value="CBD">Commercial Bank of Dubai</option>
-                                    <option value="FAB">First Abu Dhabi Bank</option>
-                                    <option value="Mashreq Bank">Mashreq Bank</option>
-                                    <option value="DIB">Dubai Islamic Bank</option>
-                                    <option value="EIB">Emirates Islamic Bank</option>
-                                </select>
+                                <div class="relative mt-1">
+                                    <select id="cheque_bank_{{ $index }}" wire:model="receipts.{{ $index }}.cheque_bank"
+                                            class="appearance-none block w-full pl-3 pr-10 py-1.5 text-sm border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 bg-no-repeat bg-[position:right_0.5rem_center] bg-[size:1.5em_1.5em] bg-[url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")] dark:bg-[url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")]" required>
+                                        <option value="">Select Bank</option>
+                                        <option value="ENBD">Emirates NBD</option>
+                                        <option value="CBD">Commercial Bank of Dubai</option>
+                                        <option value="FAB">First Abu Dhabi Bank</option>
+                                        <option value="Mashreq Bank">Mashreq Bank</option>
+                                        <option value="DIB">Dubai Islamic Bank</option>
+                                        <option value="EIB">Emirates Islamic Bank</option>
+                                    </select>
+                                </div>
                                 @error("receipts.$index.cheque_bank") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
+                                <label for="cheque_date_{{ $index }}" class="block text-xs font-medium text-gray-700">Cheque Date</label>
+                                <input type="date" id="cheque_date_{{ $index }}" wire:model="receipts.{{ $index }}.cheque_date" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm text-sm border-gray-300 rounded-md py-1.5" required>
+                                @error("receipts.$index.cheque_date") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                             </div>
 
                             <div class="sm:col-span-2">
                                 <label for="cheque_image_{{ $index }}" class="block text-xs font-medium text-gray-700">Cheque Copy</label>
-                                <input type="file" id="cheque_image_{{ $index }}" wire:model="receipts.{{ $index }}.cheque_image" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full text-sm border-gray-300 rounded-md py-1.5" accept="image/*" required>
+                                <div class="flex items-center space-x-2">
+                                    <input type="file" id="cheque_image_{{ $index }}" wire:model="receipts.{{ $index }}.cheque_image" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full text-sm border-gray-300 rounded-md py-1.5 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" accept="image/*">
+                                    <div wire:loading wire:target="receipts.{{ $index }}.cheque_image">
+                                        <span class="text-xs text-blue-500">Uploading...</span>
+                                    </div>
+                                </div>
                                 @error("receipts.$index.cheque_image") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                             </div>
                         @endif
@@ -100,6 +120,17 @@
                                 <label for="transaction_reference_{{ $index }}" class="block text-xs font-medium text-gray-700">Transaction Reference</label>
                                 <input type="text" id="transaction_reference_{{ $index }}" wire:model="receipts.{{ $index }}.transaction_reference" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm text-sm border-gray-300 rounded-md py-1.5" required>
                                 @error("receipts.$index.transaction_reference") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label for="transfer_receipt_image_{{ $index }}" class="block text-xs font-medium text-gray-700">Transfer Receipt Image (Optional)</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="file" id="transfer_receipt_image_{{ $index }}" wire:model="receipts.{{ $index }}.transfer_receipt_image" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full text-sm border-gray-300 rounded-md py-1.5 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" accept="image/*">
+                                    <div wire:loading wire:target="receipts.{{ $index }}.transfer_receipt_image">
+                                        <span class="text-xs text-blue-500">Uploading...</span>
+                                    </div>
+                                </div>
+                                @error("receipts.$index.transfer_receipt_image") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                             </div>
                         @endif
 
@@ -115,7 +146,7 @@
     </div>
 
     <div class="flex justify-end mt-4">
-        <button type="button" wire:click="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-1 focus:ring-blue-500">
+        <button wire:click.prevent="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-1 focus:ring-blue-500">
             Save Receipts
         </button>
     </div>

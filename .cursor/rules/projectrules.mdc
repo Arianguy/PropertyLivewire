@@ -92,4 +92,5 @@ Essential Guidelines and Best Practices
 - Use Laravel 11 event and listener system for decoupled code.
 - Use Tailwind CSS and Flux UI for consistent and efficient styling.
 - Implement complex UI patterns using Livewire and Alpine.js.
-    
+
+AFTER EVERY CHANGE, TEST IN THE BROWSER MCP.

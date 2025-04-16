@@ -71,14 +71,26 @@ class Edit extends Component
     public function deleteMedia($mediaId)
     {
         try {
+            // Find the media item in the collection
             $media = $this->contract->getMedia('contracts_copy')->firstWhere('id', $mediaId);
+
             if ($media) {
-                $media->delete();
-                $this->loadMedia();
-                $this->dispatch('notify', [
-                    'type' => 'success',
-                    'message' => 'File deleted successfully!'
-                ]);
+                // Delete the media item from storage
+                $mediaDeleted = $media->delete();
+
+                if ($mediaDeleted) {
+                    // Remove the item from the local array
+                    $this->media = array_values(array_filter($this->media, function ($item) use ($mediaId) {
+                        return $item['id'] != $mediaId;
+                    }));
+
+                    // Dispatch events
+                    $this->dispatch('media-deleted');
+                    $this->dispatch('notify', [
+                        'type' => 'success',
+                        'message' => 'File deleted successfully!'
+                    ]);
+                }
             }
         } catch (\Exception $e) {
             $this->dispatch('notify', [

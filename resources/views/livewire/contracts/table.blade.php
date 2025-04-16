@@ -100,30 +100,41 @@
                                     <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                         <div class="flex justify-end space-x-2">
                                             @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view contracts'))
-                                            <a href="{{ route('contracts.show', $contract) }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-500 dark:hover:text-primary-400">
+                                            <a href="{{ route('contracts.show', $contract) }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-500 dark:hover:text-primary-400" title="View Contract">
                                                 <flux:icon name="eye" class="h-5 w-5" />
                                                 <span class="sr-only">View</span>
                                             </a>
                                             @endif
 
-                                            @if($contract->validity === 'YES' && !$contract->renewals()->exists())
+                                            @if($contract->validity === 'YES')
                                                 @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('edit contracts'))
-                                                <a href="{{ route('contracts.edit', $contract) }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-500 dark:hover:text-primary-400">
-                                                    <flux:icon name="pencil-square" class="h-5 w-5" />
-                                                    <span class="sr-only">Edit</span>
-                                                </a>
+                                                    @if(!$contract->renewals()->exists())
+                                                        <a href="{{ route('contracts.edit', $contract) }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-500 dark:hover:text-primary-400" title="Edit Contract">
+                                                            <flux:icon name="pencil-square" class="h-5 w-5" />
+                                                            <span class="sr-only">Edit</span>
+                                                        </a>
+                                                    @endif
+                                                @endif
+
+                                                @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('create receipts'))
+                                                    <a href="{{ route('receipts.create', $contract) }}" class="text-green-600 hover:text-green-900 dark:text-green-500 dark:hover:text-green-400" title="Create Receipt">
+                                                        <flux:icon name="document-plus" class="h-5 w-5" />
+                                                        <span class="sr-only">Create Receipt</span>
+                                                    </a>
                                                 @endif
 
                                                 @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('terminate contracts'))
-                                                <button type="button" wire:click="terminateContract({{ $contract->id }})" wire:confirm="Are you sure you want to terminate this contract? The property will be marked as VACANT." class="text-yellow-600 hover:text-yellow-900 dark:text-yellow-500 dark:hover:text-yellow-400">
-                                                    <flux:icon name="no-symbol" class="h-5 w-5" />
-                                                    <span class="sr-only">Terminate</span>
-                                                </button>
+                                                    @if(!$contract->renewals()->exists())
+                                                        <button type="button" wire:click="terminateContract({{ $contract->id }})" wire:confirm="Are you sure you want to terminate this contract? The property will be marked as VACANT." class="text-yellow-600 hover:text-yellow-900 dark:text-yellow-500 dark:hover:text-yellow-400" title="Terminate Contract">
+                                                            <flux:icon name="no-symbol" class="h-5 w-5" />
+                                                            <span class="sr-only">Terminate</span>
+                                                        </button>
+                                                    @endif
                                                 @endif
                                             @endif
 
                                             @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('delete contracts'))
-                                            <button type="button" wire:click="deleteContract({{ $contract->id }})" wire:confirm="Are you sure you want to delete this contract?" class="text-red-600 hover:text-red-900 dark:text-red-500 dark:hover:text-red-400">
+                                            <button type="button" wire:click="deleteContract({{ $contract->id }})" wire:confirm="Are you sure you want to delete this contract?" class="text-red-600 hover:text-red-900 dark:text-red-500 dark:hover:text-red-400" title="Delete Contract">
                                                 <flux:icon name="trash" class="h-5 w-5" />
                                                 <span class="sr-only">Delete</span>
                                             </button>
@@ -166,11 +177,18 @@
                             </a>
                             @endif
 
-                            @if($contract->validity === 'YES' && !$contract->renewals()->exists())
+                            @if($contract->validity === 'YES')
                                 @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('edit contracts'))
-                                <a href="{{ route('contracts.edit', $contract) }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-500 dark:hover:text-primary-400">
-                                    <flux:icon name="pencil-square" class="h-5 w-5" />
-                                </a>
+                                    @if(!$contract->renewals()->exists())
+                                    <a href="{{ route('contracts.edit', $contract) }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-500 dark:hover:text-primary-400">
+                                        <flux:icon name="pencil-square" class="h-5 w-5" />
+                                    </a>
+                                    @endif
+                                @endif
+                                @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('create receipts'))
+                                    <a href="{{ route('receipts.create', $contract) }}" class="text-green-600 hover:text-green-900 dark:text-green-500 dark:hover:text-green-400">
+                                        <flux:icon name="document-plus" class="h-5 w-5" />
+                                    </a>
                                 @endif
                             @endif
                         </div>

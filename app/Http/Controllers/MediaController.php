@@ -25,12 +25,22 @@ class MediaController extends Controller
         // Get the full path to the file
         $path = $media->getPath();
 
-        // Return the file with proper headers
-        return response()->file($path, [
+        // Set appropriate headers based on file type
+        $headers = [
             'Content-Type' => $media->mime_type,
             'Content-Disposition' => 'inline; filename="' . $media->file_name . '"',
             'Cache-Control' => 'public, max-age=86400'
-        ]);
+        ];
+
+        // Add additional headers for specific file types
+        if (str_starts_with($media->mime_type, 'image/')) {
+            $headers['Content-Type'] = $media->mime_type;
+        } elseif ($media->mime_type === 'application/pdf') {
+            $headers['Content-Type'] = 'application/pdf';
+        }
+
+        // Return the file with proper headers
+        return response()->file($path, $headers);
     }
 
     /**

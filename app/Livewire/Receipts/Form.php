@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Models\Receipt;
 use App\Models\Contract;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Livewire\WithFileUploads;
 
 class Form extends Component
@@ -37,6 +38,7 @@ class Form extends Component
             'cheque_date' => '',
             'transaction_reference' => '',
             'cheque_image' => null,
+            'transfer_receipt_image' => null,
         ]];
     }
 
@@ -53,6 +55,7 @@ class Form extends Component
             'cheque_date' => '',
             'transaction_reference' => '',
             'cheque_image' => null,
+            'transfer_receipt_image' => null,
         ];
     }
 
@@ -70,18 +73,20 @@ class Form extends Component
             $rules["receipts.$index.receipt_category"] = 'required|in:SECURITY_DEPOSIT,RENT';
             $rules["receipts.$index.payment_type"] = 'required|in:CASH,CHEQUE,ONLINE_TRANSFER';
             $rules["receipts.$index.amount"] = 'required|numeric|min:0.01';
-            $rules["receipts.$index.receipt_date"] = 'required|date';
             $rules["receipts.$index.narration"] = 'required|string|max:255';
 
             if ($receipt['payment_type'] === 'CHEQUE') {
                 $rules["receipts.$index.cheque_no"] = 'required|string|max:50';
                 $rules["receipts.$index.cheque_date"] = 'required|date';
                 $rules["receipts.$index.cheque_bank"] = 'required|string|max:100';
-                $rules["receipts.$index.cheque_image"] = 'required|image|max:2048';
-            }
-
-            if ($receipt['payment_type'] === 'ONLINE_TRANSFER') {
+                $rules["receipts.$index.cheque_image"] = 'required|image|max:10240';
+                $rules["receipts.$index.receipt_date"] = 'nullable|date';
+            } elseif ($receipt['payment_type'] === 'ONLINE_TRANSFER') {
+                $rules["receipts.$index.receipt_date"] = 'required|date';
                 $rules["receipts.$index.transaction_reference"] = 'required|string|max:100';
+                $rules["receipts.$index.transfer_receipt_image"] = 'nullable|image|max:10240';
+            } else {
+                $rules["receipts.$index.receipt_date"] = 'required|date';
             }
         }
 
@@ -90,9 +95,11 @@ class Form extends Component
 
     public function submit()
     {
-        $this->validate();
+        try {
+            $validated = $this->validate();
 
-        DB::transaction(function () {
+            DB::beginTransaction();
+
             foreach ($this->receipts as $receiptData) {
                 $receipt = Receipt::create([
                     'contract_id' => $this->contract_id,
@@ -108,16 +115,53 @@ class Form extends Component
                     'status' => $receiptData['payment_type'] === 'CASH' ? 'CLEARED' : 'PENDING',
                 ]);
 
-                if ($receiptData['payment_type'] === 'CHEQUE' && $receiptData['cheque_image']) {
-                    $receipt->addMedia($receiptData['cheque_image']->getRealPath())
-                        ->usingName('Cheque Copy')
-                        ->toMediaCollection('cheque_images', 'public');
+                if ($receiptData['payment_type'] === 'CHEQUE' && isset($receiptData['cheque_image']) && $receiptData['cheque_image']) {
+                    try {
+                        // Ensure file is properly uploaded
+                        if (method_exists($receiptData['cheque_image'], 'isValid') && $receiptData['cheque_image']->isValid()) {
+                            $receipt->addMedia($receiptData['cheque_image']->getRealPath())
+                                ->usingName('Cheque Copy')
+                                ->toMediaCollection('cheque_images', 'public');
+                        } else {
+                            Log::warning('Invalid cheque image file provided');
+                        }
+                    } catch (\Exception $e) {
+                        // Log the error but continue with the receipt creation
+                        Log::error('Failed to upload cheque image: ' . $e->getMessage());
+                    }
+                }
+
+                if ($receiptData['payment_type'] === 'ONLINE_TRANSFER' && isset($receiptData['transfer_receipt_image']) && $receiptData['transfer_receipt_image']) {
+                    try {
+                        // Ensure file is properly uploaded
+                        if (method_exists($receiptData['transfer_receipt_image'], 'isValid') && $receiptData['transfer_receipt_image']->isValid()) {
+                            $receipt->addMedia($receiptData['transfer_receipt_image']->getRealPath())
+                                ->usingName('Transfer Receipt')
+                                ->toMediaCollection('transfer_receipts', 'public');
+                        } else {
+                            Log::warning('Invalid transfer receipt image file provided');
+                        }
+                    } catch (\Exception $e) {
+                        // Log the error but continue with the receipt creation
+                        Log::error('Failed to upload transfer receipt image: ' . $e->getMessage());
+                    }
                 }
             }
-        });
 
-        session()->flash('success', 'Receipts recorded successfully.');
-        return redirect()->route('contracts.show', $this->contract_id);
+            DB::commit();
+
+            session()->flash('success', 'Receipts recorded successfully.');
+            return redirect()->route('contracts.show', $this->contract_id);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation error in receipt form: ' . json_encode($e->errors()));
+            throw $e;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error creating receipt: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+
+            session()->flash('error', 'Error creating receipt: ' . $e->getMessage());
+        }
     }
 
     public function render()

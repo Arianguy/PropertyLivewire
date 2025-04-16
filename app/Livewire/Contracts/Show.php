@@ -27,10 +27,10 @@ class Show extends Component
                 'name' => $item->file_name,
                 'size' => $item->size,
                 'type' => $item->mime_type,
-                'url' => route('media.show', $item->id),
-                'download_url' => route('media.download', $item->id),
+                'url' => $item->getUrl(),
+                'download_url' => $item->getUrl() . '/download',
                 'thumbnail' => $item->hasGeneratedConversion('thumb')
-                    ? route('media.thumbnail', ['id' => $item->id, 'conversion' => 'thumb'])
+                    ? $item->getUrl('thumb')
                     : null
             ];
         })->toArray();
