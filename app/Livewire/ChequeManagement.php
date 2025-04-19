@@ -15,36 +15,48 @@ class ChequeManagement extends Component
     use WithFileUploads;
 
     public $selectedCheque = null;
-    public $depositDate;
     public $showClearModal = false;
-    public $status = '';
-    public $remarks = '';
+    // Properties for the Clear Cheque Modal
+    public $clear_depositDate;
+    public $clear_status = '';
+    public $clear_remarks = '';
 
     public $showImageModal = false;
     public $attachmentUrl = null;
     public $attachmentName = null;
     public $chequeImage = null;
 
+    // Listen for the event emitted by ResolveBouncedReceipt
+    protected $listeners = ['receiptsUpdated' => '$refresh'];
+
+    // Note: Validation rules key names must match the public properties
     protected function rules()
     {
         return [
-            'depositDate' => 'required|date',
-            'status' => 'required|in:CLEARED,BOUNCED',
-            'remarks' => 'required_if:status,BOUNCED|nullable|string|max:1000',
-            'chequeImage' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,pdf',
+            'clear_depositDate' => 'required|date',
+            'clear_status' => 'required|in:CLEARED,BOUNCED',
+            'clear_remarks' => 'required_if:clear_status,BOUNCED|nullable|string|max:1000',
+            'chequeImage' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,pdf', // For image upload modal if used
         ];
     }
 
     public function mount()
     {
-        $this->depositDate = now()->format('Y-m-d');
+        $this->clear_depositDate = now()->format('Y-m-d');
     }
 
     public function render()
     {
         $cheques = Receipt::where('payment_type', 'CHEQUE')
-            ->where('status', 'PENDING')
-            ->with(['contract.tenant', 'contract.property'])
+            ->where(function ($query) {
+                $query->where('status', 'PENDING')
+                    ->orWhere(function ($q) {
+                        $q->where('status', 'BOUNCED')
+                            ->whereRaw('receipts.amount > (SELECT COALESCE(SUM(amount), 0) FROM receipts as res WHERE res.resolves_receipt_id = receipts.id)');
+                    });
+            })
+            ->with(['contract.tenant', 'contract.property', 'resolutionReceipts'])
+            ->withSum('resolutionReceipts', 'amount')
             ->orderBy('cheque_date', 'asc')
             ->paginate(10);
 
@@ -55,11 +67,14 @@ class ChequeManagement extends Component
 
     public function showClearChequeModal($chequeId)
     {
+        Log::info("Attempting to open clear modal for Cheque ID: {$chequeId}");
         try {
             $this->selectedCheque = Receipt::findOrFail($chequeId);
-            $this->reset(['status', 'remarks']);
-            $this->depositDate = now()->format('Y-m-d');
+            // Reset the correct properties for the clear modal
+            $this->reset(['clear_status', 'clear_remarks']);
+            $this->clear_depositDate = now()->format('Y-m-d'); // Ensure date is reset
             $this->showClearModal = true;
+            Log::info("showClearModal property set to true for Cheque ID: {$chequeId}");
         } catch (\Exception $e) {
             Log::error('Error opening clear cheque modal', ['error' => $e->getMessage()]);
             $this->dispatch('notify', [
@@ -71,27 +86,39 @@ class ChequeManagement extends Component
 
     public function clearCheque()
     {
-        $this->validate();
+        // Validate using the properties bound to the modal
+        $validatedData = $this->validate();
+        Log::info('Clear Cheque Validation Passed', $validatedData);
 
         try {
             if (!$this->selectedCheque) {
                 throw new \Exception('No cheque selected to clear.');
             }
 
-            $this->selectedCheque->update([
-                'deposit_date' => $this->depositDate,
-                'deposit_account' => '019100503669',
-                'status' => $this->status,
-                'remarks' => $this->remarks,
+            Log::info('Updating cheque status', [
+                'cheque_id' => $this->selectedCheque->id,
+                'data' => $validatedData
             ]);
 
-            $this->reset(['selectedCheque', 'status', 'remarks', 'showClearModal']);
-            $this->depositDate = now()->format('Y-m-d');
+            $this->selectedCheque->update([
+                'deposit_date' => $validatedData['clear_depositDate'],
+                'deposit_account' => '019100503669', // Keep the fixed account
+                'status' => $validatedData['clear_status'],
+                'remarks' => $validatedData['clear_remarks'],
+            ]);
+
+            Log::info('Cheque update successful', ['cheque_id' => $this->selectedCheque->id]);
+
+            // Reset the correct properties and close modal
+            $this->reset(['selectedCheque', 'clear_status', 'clear_remarks', 'showClearModal']);
+            $this->clear_depositDate = now()->format('Y-m-d');
 
             $this->dispatch('notify', [
                 'message' => 'Cheque status updated successfully!',
                 'type' => 'success'
             ]);
+            $this->dispatch('receiptsUpdated'); // Refresh tables if needed
+
         } catch (\Exception $e) {
             Log::error('Error clearing cheque', ['error' => $e->getMessage()]);
             $this->dispatch('notify', [

@@ -44,5 +44,6 @@
     </script>
     <livewire:receipts.view-attachment-modal />
     <livewire:receipts.view-attachment />
+    @livewire('receipts.resolve-bounced-receipt')
 </body>
 </html>

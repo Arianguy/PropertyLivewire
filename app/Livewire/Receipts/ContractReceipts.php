@@ -32,11 +32,19 @@ class ContractReceipts extends Component
 
     public function render()
     {
-        $receipts = Receipt::where('contract_id', $this->contract->id)
-            ->orderBy($this->sortField, $this->sortDirection)
-            ->orderBy('status', 'asc')
-            ->orderBy('receipt_date', 'asc')
-            ->paginate(10);
+        $receiptsQuery = Receipt::where('contract_id', $this->contract->id)
+            ->with(['resolutionReceipts'])
+            ->withSum('resolutionReceipts', 'amount');
+
+        if ($this->sortField === 'date') {
+            $receiptsQuery->orderBy('receipt_date', $this->sortDirection);
+        } else {
+            $receiptsQuery->orderBy($this->sortField, $this->sortDirection);
+        }
+
+        $receiptsQuery->orderBy('status', 'asc');
+
+        $receipts = $receiptsQuery->paginate(10);
 
         return view('livewire.receipts.contract-receipts', [
             'receipts' => $receipts

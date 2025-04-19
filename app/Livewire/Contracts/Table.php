@@ -16,7 +16,7 @@ class Table extends Component
 
     public $search = '';
     public $isExporting = false;
-    public $statusFilter = '';
+    public $statusFilter = 'YES';
 
     public function updatingSearch()
     {

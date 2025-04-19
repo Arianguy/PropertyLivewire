@@ -14,6 +14,7 @@ class Receipt extends Model implements HasMedia
 
     protected $fillable = [
         'contract_id',
+        'resolves_receipt_id',
         'receipt_category',
         'payment_type',
         'amount',
@@ -39,6 +40,18 @@ class Receipt extends Model implements HasMedia
     public function contract()
     {
         return $this->belongsTo(Contract::class);
+    }
+
+    // The bounced receipt this receipt resolves (if any)
+    public function resolvedReceipt()
+    {
+        return $this->belongsTo(Receipt::class, 'resolves_receipt_id');
+    }
+
+    // The resolution receipts that resolve this bounced receipt (if any)
+    public function resolutionReceipts()
+    {
+        return $this->hasMany(Receipt::class, 'resolves_receipt_id');
     }
 
     public function registerMediaCollections(): void

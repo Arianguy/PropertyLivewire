@@ -71,6 +71,18 @@
                             'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' => $receipt->status === 'PENDING',
                         ])>
                             {{ $receipt->status }}
+                            @if($receipt->status === 'BOUNCED')
+                                @php
+                                    $totalResolved = $receipt->resolution_receipts_sum_amount ?? 0;
+                                    $isFullyResolved = $totalResolved >= $receipt->amount;
+                                @endphp
+                                @if($isFullyResolved)
+                                    <span class="text-xs"> (Resolved)</span>
+                                @else
+                                    @php $remaining = $receipt->amount - $totalResolved; @endphp
+                                    <span class="text-xs"> ({{ number_format($remaining, 2) }} Due)</span>
+                                @endif
+                            @endif
                         </span>
 
                         @if($receipt->payment_type === 'CHEQUE' && $receipt->status === 'PENDING' && $receipt->cheque_date)
@@ -106,6 +118,25 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
                                 </button>
+                            @endif
+
+                            {{-- Add Resolve Button for UNFULLY Resolved Bounced Receipts --}}
+                            @if($receipt->status === 'BOUNCED')
+                                @php
+                                    // Reuse calculation from above if possible, or recalculate if needed
+                                    $totalResolved = $receipt->resolution_receipts_sum_amount ?? 0;
+                                    $isFullyResolved = $totalResolved >= $receipt->amount;
+                                @endphp
+                                @if(!$isFullyResolved)
+                                    <button
+                                        wire:click="$dispatch('openResolveModal', { receiptId: {{ $receipt->id }} })"
+                                        class="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 transition-colors duration-200"
+                                        title="Record Resolution Payment">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16Zm.75-11.25a.75.75 0 00-1.5 0v2.5h-2.5a.75.75 0 000 1.5h2.5v2.5a.75.75 0 001.5 0v-2.5h2.5a.75.75 0 000-1.5h-2.5v-2.5z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                @endif
                             @endif
 
                             <a
