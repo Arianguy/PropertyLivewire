@@ -74,6 +74,15 @@
                                 <span>Receipts</span>
                             </div>
                         </flux:navmenu.item>
+
+                        @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view-cheque-management'))
+                        <flux:navmenu.item :href="route('cheque-management')" :current="request()->routeIs('cheque-management')" wire:navigate>
+                            <div class="flex items-center gap-2">
+                                <flux:icon name="banknotes" class="h-5 w-5" />
+                                <span>Cheque Management</span>
+                            </div>
+                        </flux:navmenu.item>
+                        @endif
                     </flux:navmenu>
                 </flux:dropdown>
                 @endif

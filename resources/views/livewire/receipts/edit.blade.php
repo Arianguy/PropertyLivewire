@@ -176,9 +176,9 @@
                                             <input id="remove_cheque_image" wire:model="remove_cheque_image" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
                                             <label for="remove_cheque_image" class="ml-2 block text-sm text-gray-700">Remove current image</label>
                                         </div>
-                                    </div>
-                                </div>
-                            @endif
+            </div>
+        </div>
+    @endif
                             <div class="flex items-center space-x-2">
                                 <input type="file" id="cheque_image" wire:model="cheque_image" accept="image/*"
                                     class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
@@ -212,7 +212,7 @@
                                     <button type="button" wire:click="$dispatch('showAttachment', { receipt: {{ $receipt->id }}, type: 'transfer' })"
                                         class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                         View Full Image
-                                    </button>
+                    </button>
                                     <div class="ml-4">
                                         <div class="flex items-center mb-1">
                                             <input id="remove_transfer_image" wire:model="remove_transfer_image" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">

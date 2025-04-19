@@ -51,6 +51,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ];
     })->middleware(['auth', 'verified']);
 
+    // Cheque Management
+    Route::get('/cheque-management', \App\Livewire\ChequeManagement::class)
+        ->middleware('role_or_permission:Super Admin|view-cheque-management')
+        ->name('cheque-management');
+
     // Roles Management
     Route::get('/roles', App\Livewire\Roles\Table::class)
         ->middleware('role_or_permission:Super Admin|view roles')

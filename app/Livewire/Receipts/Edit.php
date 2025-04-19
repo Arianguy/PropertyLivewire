@@ -237,144 +237,105 @@ class Edit extends Component
 
     public function save()
     {
-        try {
-            Log::info('Starting receipt update process');
+        Log::info('Attempting to save receipt', ['receipt_id' => $this->receipt->id]);
 
-            // Validate the form fields
-            $this->validate([
-                'receipt_category' => 'required|string',
-                'payment_type' => 'required|in:CASH,CHEQUE,ONLINE_TRANSFER',
-                'amount' => 'required|numeric|min:0.01',
-                'receipt_date' => 'required|date',
-                'narration' => 'required|string|max:255',
-                'cheque_no' => 'required_if:payment_type,CHEQUE|nullable|string',
-                'cheque_date' => 'required_if:payment_type,CHEQUE|nullable|date',
-                'cheque_bank' => 'required_if:payment_type,CHEQUE|nullable|string',
-                'transaction_reference' => 'required_if:payment_type,ONLINE_TRANSFER|nullable|string',
-            ]);
+        // Prepare data for update
+        $data = [
+            'receipt_category' => $this->receipt_category,
+            'payment_type' => $this->payment_type,
+            'amount' => $this->amount,
+            'receipt_date' => $this->receipt_date,
+            'narration' => $this->narration,
+            'status' => $this->status,
+            'cheque_no' => $this->payment_type === 'CHEQUE' ? $this->cheque_no : null,
+            'cheque_bank' => $this->payment_type === 'CHEQUE' ? $this->cheque_bank : null,
+            'cheque_date' => $this->payment_type === 'CHEQUE' ? $this->cheque_date : null,
+            'transaction_reference' => $this->payment_type === 'ONLINE_TRANSFER' ? $this->transaction_reference : null,
+            'deposit_date' => $this->receipt->deposit_date, // Retain original unless overridden
+            'remarks' => $this->receipt->remarks, // Retain original unless overridden
+        ];
 
-            Log::info('Receipt validation passed', [
-                'payment_type' => $this->payment_type,
-                'has_cheque_image' => isset($this->cheque_image),
-                'has_transfer_image' => isset($this->transfer_receipt_image),
-                'remove_cheque_image' => $this->remove_cheque_image,
-                'remove_transfer_image' => $this->remove_transfer_image
-            ]);
-
-            // Begin transaction
-            DB::beginTransaction();
-
-            try {
-                // Prepare the update data
-                $updateData = [
-                    'receipt_category' => $this->receipt_category,
-                    'payment_type' => $this->payment_type,
-                    'amount' => $this->amount,
-                    'receipt_date' => $this->receipt_date,
-                    'narration' => $this->narration,
-                ];
-
-                // Handle payment-specific fields
-                if ($this->payment_type === 'CASH') {
-                    $updateData['status'] = 'CLEARED';
-                    $updateData['cheque_no'] = null;
-                    $updateData['cheque_bank'] = null;
-                    $updateData['cheque_date'] = null;
-                    $updateData['transaction_reference'] = null;
-
-                    // Clear media collections for cash payments
-                    $this->receipt->clearMediaCollection('cheque_images');
-                    $this->receipt->clearMediaCollection('transfer_receipts');
-
-                    Log::info('Processing CASH payment type - cleared media collections');
-                } else if ($this->payment_type === 'CHEQUE') {
-                    $updateData['status'] = $this->status;
-                    $updateData['cheque_no'] = $this->cheque_no;
-                    $updateData['cheque_bank'] = $this->cheque_bank;
-                    $updateData['cheque_date'] = $this->cheque_date;
-                    $updateData['transaction_reference'] = null;
-
-                    // Handle cheque image
-                    if ($this->remove_cheque_image) {
-                        Log::info('Removing existing cheque image');
-                        $this->receipt->clearMediaCollection('cheque_images');
-                    }
-
-                    if ($this->cheque_image) {
-                        Log::info('Adding new cheque image', [
-                            'filename' => $this->cheque_image->getClientOriginalName()
-                        ]);
-                        $this->receipt->clearMediaCollection('cheque_images');
-                        $this->receipt->addMedia($this->cheque_image->getRealPath())
-                            ->usingName($this->receipt->contract->name . '_cheque')
-                            ->toMediaCollection('cheque_images', 'public');
-                    }
-
-                    // Clear transfer media for cheque payments
-                    $this->receipt->clearMediaCollection('transfer_receipts');
-
-                    Log::info('Processed CHEQUE payment type');
-                } else if ($this->payment_type === 'ONLINE_TRANSFER') {
-                    $updateData['status'] = $this->status;
-                    $updateData['transaction_reference'] = $this->transaction_reference;
-                    $updateData['cheque_no'] = null;
-                    $updateData['cheque_bank'] = null;
-                    $updateData['cheque_date'] = null;
-
-                    // Handle transfer image
-                    if ($this->remove_transfer_image) {
-                        Log::info('Removing existing transfer receipt image');
-                        $this->receipt->clearMediaCollection('transfer_receipts');
-                    }
-
-                    if ($this->transfer_receipt_image) {
-                        Log::info('Adding new transfer receipt image', [
-                            'filename' => $this->transfer_receipt_image->getClientOriginalName()
-                        ]);
-                        $this->receipt->clearMediaCollection('transfer_receipts');
-                        $this->receipt->addMedia($this->transfer_receipt_image->getRealPath())
-                            ->usingName($this->receipt->contract->name . '_transfer')
-                            ->toMediaCollection('transfer_receipts', 'public');
-                    }
-
-                    // Clear cheque media for transfer payments
-                    $this->receipt->clearMediaCollection('cheque_images');
-
-                    Log::info('Processed ONLINE_TRANSFER payment type');
-                }
-
-                // Update the receipt
-                $this->receipt->update($updateData);
-                Log::info('Receipt data updated in database');
-
-                // Commit the transaction
-                DB::commit();
-                Log::info('Database transaction committed');
-
-                // Refresh the receipt
-                $this->receipt = $this->receipt->fresh();
-
-                // Success message
-                session()->flash('success', 'Receipt updated successfully.');
-
-                // Redirect to the receipts list
-                return redirect()->route('receipts.list-by-contract', $this->receipt->contract_id);
-            } catch (\Exception $e) {
-                // Rollback in case of error
-                DB::rollBack();
-                Log::error('Database error: ' . $e->getMessage(), [
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine(),
-                    'trace' => $e->getTraceAsString()
-                ]);
-                throw $e;
+        // Apply specific logic for CASH and ONLINE_TRANSFER
+        if (in_array($this->payment_type, ['CASH', 'ONLINE_TRANSFER'])) {
+            $data['status'] = 'CLEARED';
+            if (!empty($this->receipt_date)) {
+                $data['deposit_date'] = $this->receipt_date;
             }
+            $data['remarks'] = $this->narration; // Set remarks from narration
+        } else if ($this->payment_type === 'CHEQUE') {
+            // If changed back to CHEQUE, ensure status is appropriate (e.g., PENDING if not already cleared/bounced)
+            if ($this->originalPaymentType !== 'CHEQUE' && !in_array($this->status, ['CLEARED', 'BOUNCED'])) {
+                $data['status'] = 'PENDING';
+            }
+            // Clear deposit date and remarks if status is PENDING for a cheque
+            if ($data['status'] === 'PENDING') {
+                $data['deposit_date'] = null;
+                $data['remarks'] = null;
+            }
+        } else {
+            // If it's not CASH, ONLINE_TRANSFER, or CHEQUE (shouldn't happen with validation)
+            // Default to PENDING, clear deposit date and remarks
+            $data['status'] = 'PENDING';
+            $data['deposit_date'] = null;
+            $data['remarks'] = null;
+        }
+
+        // Validate based on potentially modified data
+        $this->validate($this->rules());
+
+        try {
+            DB::beginTransaction();
+            Log::info('Updating receipt with data:', $data);
+
+            // Update the receipt
+            $this->receipt->update($data);
+
+            // Handle Cheque Image Upload/Removal
+            if ($this->payment_type === 'CHEQUE') {
+                if ($this->remove_cheque_image) {
+                    Log::info('Removing cheque image');
+                    $this->receipt->clearMediaCollection('cheque_images');
+                }
+                if ($this->cheque_image) {
+                    Log::info('Adding new cheque image');
+                    $this->receipt->clearMediaCollection('cheque_images'); // Remove old before adding new
+                    $this->receipt->addMedia($this->cheque_image->getRealPath())
+                        ->usingName('Cheque_' . $this->cheque_no)
+                        ->usingFileName('cheque_' . $this->receipt->id . '_' . time() . '.' . $this->cheque_image->getClientOriginalExtension())
+                        ->toMediaCollection('cheque_images');
+                    $this->reset('cheque_image');
+                }
+            }
+
+            // Handle Transfer Receipt Image Upload/Removal
+            if ($this->payment_type === 'ONLINE_TRANSFER') {
+                if ($this->remove_transfer_image) {
+                    Log::info('Removing transfer receipt image');
+                    $this->receipt->clearMediaCollection('transfer_receipts');
+                }
+                if ($this->transfer_receipt_image) {
+                    Log::info('Adding new transfer receipt image');
+                    $this->receipt->clearMediaCollection('transfer_receipts'); // Remove old before adding new
+                    $this->receipt->addMedia($this->transfer_receipt_image->getRealPath())
+                        ->usingName('TransferReceipt_' . $this->transaction_reference)
+                        ->usingFileName('transfer_' . $this->receipt->id . '_' . time() . '.' . $this->transfer_receipt_image->getClientOriginalExtension())
+                        ->toMediaCollection('transfer_receipts');
+                    $this->reset('transfer_receipt_image');
+                }
+            }
+
+            DB::commit();
+            Log::info('Receipt updated successfully');
+            session()->flash('success', 'Receipt updated successfully.');
+            return redirect()->route('receipts.list-by-contract', $this->contract->id);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            Log::error('Validation failed during receipt update', ['errors' => $e->errors()]);
+            // Validation errors are automatically handled by Livewire
+            throw $e;
         } catch (\Exception $e) {
-            Log::error('Error updating receipt: ' . $e->getMessage(), [
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
-            ]);
+            DB::rollBack();
+            Log::error('Error updating receipt', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             session()->flash('error', 'Error updating receipt: ' . $e->getMessage());
         }
     }

@@ -101,7 +101,8 @@ class Form extends Component
             DB::beginTransaction();
 
             foreach ($this->receipts as $receiptData) {
-                $receipt = Receipt::create([
+                // Prepare data, applying logic for CASH/ONLINE_TRANSFER
+                $dataToCreate = [
                     'contract_id' => $this->contract_id,
                     'receipt_category' => $receiptData['receipt_category'],
                     'payment_type' => $receiptData['payment_type'],
@@ -112,12 +113,26 @@ class Form extends Component
                     'cheque_bank' => $receiptData['payment_type'] === 'CHEQUE' ? $receiptData['cheque_bank'] : null,
                     'cheque_date' => $receiptData['payment_type'] === 'CHEQUE' ? $receiptData['cheque_date'] : null,
                     'transaction_reference' => $receiptData['payment_type'] === 'ONLINE_TRANSFER' ? $receiptData['transaction_reference'] : null,
-                    'status' => $receiptData['payment_type'] === 'CASH' ? 'CLEARED' : 'PENDING',
-                ]);
+                    'status' => 'PENDING', // Default status
+                    'deposit_date' => null, // Default deposit date
+                    'remarks' => null, // Default remarks
+                ];
+
+                // Apply specific logic for CASH and ONLINE_TRANSFER
+                if (in_array($receiptData['payment_type'], ['CASH', 'ONLINE_TRANSFER'])) {
+                    $dataToCreate['status'] = 'CLEARED';
+                    // Set deposit_date to receipt_date only if receipt_date is not null
+                    if (!empty($receiptData['receipt_date'])) {
+                        $dataToCreate['deposit_date'] = $receiptData['receipt_date'];
+                    }
+                    // Set remarks equal to narration
+                    $dataToCreate['remarks'] = $receiptData['narration'];
+                }
+
+                $receipt = Receipt::create($dataToCreate);
 
                 if ($receiptData['payment_type'] === 'CHEQUE' && isset($receiptData['cheque_image']) && $receiptData['cheque_image']) {
                     try {
-                        // Ensure file is properly uploaded
                         if (method_exists($receiptData['cheque_image'], 'isValid') && $receiptData['cheque_image']->isValid()) {
                             $receipt->addMedia($receiptData['cheque_image']->getRealPath())
                                 ->usingName('Cheque Copy')
@@ -126,14 +141,12 @@ class Form extends Component
                             Log::warning('Invalid cheque image file provided');
                         }
                     } catch (\Exception $e) {
-                        // Log the error but continue with the receipt creation
                         Log::error('Failed to upload cheque image: ' . $e->getMessage());
                     }
                 }
 
                 if ($receiptData['payment_type'] === 'ONLINE_TRANSFER' && isset($receiptData['transfer_receipt_image']) && $receiptData['transfer_receipt_image']) {
                     try {
-                        // Ensure file is properly uploaded
                         if (method_exists($receiptData['transfer_receipt_image'], 'isValid') && $receiptData['transfer_receipt_image']->isValid()) {
                             $receipt->addMedia($receiptData['transfer_receipt_image']->getRealPath())
                                 ->usingName('Transfer Receipt')
@@ -142,7 +155,6 @@ class Form extends Component
                             Log::warning('Invalid transfer receipt image file provided');
                         }
                     } catch (\Exception $e) {
-                        // Log the error but continue with the receipt creation
                         Log::error('Failed to upload transfer receipt image: ' . $e->getMessage());
                     }
                 }

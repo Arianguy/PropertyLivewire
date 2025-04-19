@@ -81,6 +81,20 @@
             </flux:dropdown>
             @endif
 
+            @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view-cheque-management'))
+            <flux:dropdown>
+                <flux:navbar.item icon:trailing="chevron-down">Transactions</flux:navbar.item>
+                <flux:navmenu>
+                    <flux:navmenu.item :href="route('cheque-management')" :current="request()->routeIs('cheque-management')" wire:navigate>
+                        <div class="flex items-center gap-2">
+                            <flux:icon name="banknotes" class="h-5 w-5" />
+                            <span>Cheque Management</span>
+                        </div>
+                    </flux:navmenu.item>
+                </flux:navmenu>
+            </flux:dropdown>
+            @endif
+
             @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view roles'))
             <flux:dropdown>
                 <flux:navbar.item icon:trailing="chevron-down">Config</flux:navbar.item>
