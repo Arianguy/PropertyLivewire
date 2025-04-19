@@ -17,7 +17,7 @@
                     @endif
 
                     @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('edit contracts'))
-                    <a href="{{ route('contracts.edit', $contract) }}" class="inline-flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700 dark:hover:bg-gray-700">
+                    <a href="{{ route('contracts.edit', $contract) }}" class="inline-flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
                         <flux:icon name="pencil" class="-ml-0.5 h-5 w-5" />
                         Edit Contract
                     </a>
@@ -30,7 +30,7 @@
                     </a>
                     @endif
                 @endif
-                <a href="{{ route('contracts.table') }}" class="inline-flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700 dark:hover:bg-gray-700">
+                <a href="{{ route('contracts.table') }}" class="inline-flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
                     <flux:icon name="arrow-left" class="-ml-0.5 h-5 w-5" />
                     Back to Contracts
                 </a>
@@ -38,8 +38,8 @@
         </div>
 
         <div class="mt-4">
-            <div class="overflow-hidden bg-white shadow dark:bg-gray-800 sm:rounded-lg">
-                <div class="px-4 py-2 sm:px-6">
+            <div class="overflow-hidden bg-white dark:bg-gray-800 shadow sm:rounded-lg">
+                <div class="px-4 py-2 sm:px-6 border-b border-gray-200 dark:border-gray-700">
                     <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">Contract Information</h3>
                 </div>
                 <div class="border-t border-gray-200 dark:border-gray-700">
@@ -93,8 +93,8 @@
             </div>
 
             <!-- Embed Receipt History Here in a Card -->
-            <div class="mt-6 overflow-hidden bg-white shadow dark:bg-gray-800 sm:rounded-lg">
-                <div class="px-4 py-5 sm:px-6">
+            <div class="mt-6 overflow-hidden bg-white dark:bg-gray-800 shadow sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
                     <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">Receipt History</h3>
                 </div>
                 <div class="border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:p-0">
@@ -104,8 +104,8 @@
 
             @if($contract->getMedia('contracts_copy')->count() > 0)
             <div class="mt-6">
-                <div class="overflow-hidden bg-white shadow dark:bg-gray-800 sm:rounded-lg">
-                    <div class="px-4 py-5 sm:px-6">
+                <div class="overflow-hidden bg-white dark:bg-gray-800 shadow sm:rounded-lg">
+                    <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
                         <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">Contract Documents</h3>
                     </div>
                     <div class="border-t border-gray-200 dark:border-gray-700">
@@ -121,7 +121,7 @@
                                         </div>
                                         <div class="ml-4">
                                             <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $media->name }}</div>
-                                            <div class="text-sm text-gray-500 dark:text-gray-400">{{ $media->human_readable_size }}</div>
+                                            <div class="text-sm text-gray-500 dark:text-gray-400">{{ human_filesize($media->size) }}</div>
                                         </div>
                                     </div>
                                     <div class="flex items-center space-x-2">
@@ -142,7 +142,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                 @if($contract->allAncestors()->isNotEmpty())
-                <div class="overflow-hidden bg-white shadow dark:bg-gray-800 sm:rounded-lg">
+                <div class="overflow-hidden bg-white dark:bg-gray-800 shadow sm:rounded-lg">
                     <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                         <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Previous Contracts</h3>
                     </div>
@@ -165,7 +165,7 @@
                 @endif
 
                 @if($contract->allRenewals()->isNotEmpty())
-                <div class="overflow-hidden bg-white shadow dark:bg-gray-800 sm:rounded-lg">
+                <div class="overflow-hidden bg-white dark:bg-gray-800 shadow sm:rounded-lg">
                     <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                         <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Renewal Contracts</h3>
                     </div>
