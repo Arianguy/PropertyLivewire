@@ -196,9 +196,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('role_or_permission:Super Admin|edit receipts')
         ->name('receipts.fix-media');
 
-    // These routes are now handled by Livewire component methods
-    // Route::put('/receipts/{receipt}', [ReceiptsController::class, 'update'])->name('receipts.update');
-    // Route::delete('/receipts/{receipt}', [ReceiptsController::class, 'destroy'])->name('receipts.destroy');
+    // Payments Management
+    Route::prefix('payments')->name('payments.')->group(function () {
+        Route::get('/', App\Livewire\Payments\Index::class)
+            ->middleware('permission:view payments')
+            ->name('index');
+
+        Route::get('/create', App\Livewire\Payments\Create::class)
+            ->middleware('permission:create payments')
+            ->name('create');
+
+        Route::get('/{payment}/edit', App\Livewire\Payments\Edit::class)
+            ->middleware('permission:edit payments')
+            ->name('edit');
+    });
 });
 
 // Media secure routes

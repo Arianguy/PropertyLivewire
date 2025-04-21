@@ -57,32 +57,45 @@
                 </flux:dropdown>
                 @endif
 
-                @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view contracts'))
+                @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view contracts') || auth()->user()->can('view receipts') || auth()->user()->can('view-cheque-management') || auth()->user()->can('view payments'))
                 <flux:dropdown>
                     <flux:navbar.item icon:trailing="chevron-down">Transactions</flux:navbar.item>
                     <flux:navmenu>
+                        @can('view contracts')
                         <flux:navmenu.item :href="route('contracts.table')" :current="request()->routeIs('contracts.*')" wire:navigate>
                             <div class="flex items-center gap-2">
                                 <flux:icon name="document-text" class="h-5 w-5" />
                                 <span>Contracts</span>
                             </div>
                         </flux:navmenu.item>
+                        @endcan
 
+                        @can('view receipts')
                         <flux:navmenu.item :href="route('receipts.index')" :current="request()->routeIs('receipts.*')" wire:navigate>
                             <div class="flex items-center gap-2">
                                 <flux:icon name="currency-dollar" class="h-5 w-5" />
                                 <span>Receipts</span>
                             </div>
                         </flux:navmenu.item>
+                        @endcan
 
-                        @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view-cheque-management'))
+                        @can('view-cheque-management')
                         <flux:navmenu.item :href="route('cheque-management')" :current="request()->routeIs('cheque-management')" wire:navigate>
                             <div class="flex items-center gap-2">
                                 <flux:icon name="banknotes" class="h-5 w-5" />
                                 <span>Cheque Management</span>
                             </div>
                         </flux:navmenu.item>
-                        @endif
+                        @endcan
+
+                        @can('view payments')
+                        <flux:navmenu.item :href="route('payments.index')" :current="request()->routeIs('payments.*')" wire:navigate>
+                            <div class="flex items-center gap-2">
+                                <flux:icon name="banknotes" class="h-5 w-5" />
+                                <span>Payments</span>
+                            </div>
+                        </flux:navmenu.item>
+                        @endcan
                     </flux:navmenu>
                 </flux:dropdown>
                 @endif
@@ -243,24 +256,45 @@
 
                 @if($showManagementMenu)
                 <flux:navlist.group :heading="__('Management')" class="grid">
-                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view properties'))
+                    @can('view properties')
                     <flux:navlist.item icon="building-office" :href="route('properties.table')" :current="request()->routeIs('properties.*')" wire:navigate>{{ __('Properties') }}</flux:navlist.item>
-                    @endif
+                    @endcan
 
-                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view owners'))
+                    @can('view owners')
                     <flux:navlist.item icon="users" :href="route('owners.table')" :current="request()->routeIs('owners.*')" wire:navigate>{{ __('Owners') }}</flux:navlist.item>
-                    @endif
+                    @endcan
 
-                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view tenants'))
+                    @can('view tenants')
                     <flux:navlist.item icon="user-group" :href="route('tenants.table')" :current="request()->routeIs('tenants.*')" wire:navigate>{{ __('Tenants') }}</flux:navlist.item>
-                    @endif
+                    @endcan
                 </flux:navlist.group>
                 @endif
 
-                @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view contracts'))
+                @php
+                    $showTransactionsMenu = auth()->user()->hasRole('Super Admin') ||
+                                          auth()->user()->can('view contracts') ||
+                                          auth()->user()->can('view receipts') ||
+                                          auth()->user()->can('view-cheque-management') ||
+                                          auth()->user()->can('view payments');
+                @endphp
+
+                @if($showTransactionsMenu)
                 <flux:navlist.group :heading="__('Transactions')" class="grid">
+                    @can('view contracts')
                     <flux:navlist.item icon="document-text" :href="route('contracts.table')" :current="request()->routeIs('contracts.*')" wire:navigate>{{ __('Contracts') }}</flux:navlist.item>
+                    @endcan
+
+                    @can('view receipts')
                     <flux:navlist.item icon="currency-dollar" :href="route('receipts.index')" :current="request()->routeIs('receipts.*')" wire:navigate>{{ __('Receipts') }}</flux:navlist.item>
+                    @endcan
+
+                    @can('view-cheque-management')
+                    <flux:navlist.item icon="banknotes" :href="route('cheque-management')" :current="request()->routeIs('cheque-management')" wire:navigate>{{ __('Cheque Management') }}</flux:navlist.item>
+                    @endcan
+
+                    @can('view payments')
+                    <flux:navlist.item icon="banknotes" :href="route('payments.index')" :current="request()->routeIs('payments.*')" wire:navigate>{{ __('Payments') }}</flux:navlist.item>
+                    @endcan
                 </flux:navlist.group>
                 @endif
 
@@ -301,6 +335,7 @@
 
         {{ $slot }}
 
-        @fluxScripts
+        @livewireScripts
+        @stack('scripts')
     </body>
 </html>

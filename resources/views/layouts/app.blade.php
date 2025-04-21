@@ -17,7 +17,8 @@
 </head>
 <body class="font-sans antialiased">
     <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
-        @include('layouts.navigation')
+        {{-- Ensure this include line is removed or commented --}}
+        {{-- @include('layouts.navigation') --}}
 
         <!-- Page Heading -->
         @if (isset($header))

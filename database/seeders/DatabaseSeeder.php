@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CreateAdminUserSeeder::class,
             ContractPermissionsSeeder::class,
+            PaymentTypeSeeder::class,
         ]);
     }
 }
