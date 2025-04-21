@@ -98,7 +98,7 @@
                     <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">Receipt History</h3>
                 </div>
                 <div class="border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:p-0">
-                     @livewire('receipts.contract-receipts', ['contract' => $contract->id], key('receipts-for-contract-' . $contract->id))
+                     @livewire('receipts.contract-receipts', ['contract' => $contract], key('receipts-for-contract-' . $contract->id))
                 </div>
             </div>
 

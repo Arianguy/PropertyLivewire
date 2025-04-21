@@ -17,6 +17,20 @@
                             @endif
                         </div>
                     </th>
+                    <th class="py-3 px-6 text-left cursor-pointer" wire:click="sortBy('cheque_no')">
+                        <div class="flex items-center">
+                            Cheque No
+                            @if($sortField === 'cheque_no')
+                                <span class="ml-1">
+                                    @if($sortDirection === 'asc')
+                                        ↑
+                                    @else
+                                        ↓
+                                    @endif
+                                </span>
+                            @endif
+                        </div>
+                    </th>
                     <th class="py-3 px-6 text-left">Amount</th>
                     <th class="py-3 px-6 text-left">Payment Type</th>
                     <th class="py-3 px-6 text-left cursor-pointer" wire:click="sortBy('receipt_date')">
@@ -54,11 +68,25 @@
                 @forelse($receipts as $receipt)
                 <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600">
                     <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-100">{{ $receipt->receipt_category }}</td>
+                    <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-100">{{ $receipt->cheque_no ?? '-' }}</td>
                     <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-100">{{ number_format($receipt->amount, 2) }}</td>
-                    <td class="py-3 px-6 text-left">{{ $receipt->payment_type }}</td>
                     <td class="py-3 px-6 text-left">
-                        @if($receipt->payment_type === 'CHEQUE')
-                            {{ $receipt->cheque_date ? \Carbon\Carbon::parse($receipt->cheque_date)->format('d M Y') : 'N/A' }}
+                        <span>{{ $receipt->payment_type }}</span>
+                        {{-- Display bounced cheque info if this receipt resolves one --}}
+                        @if($receipt->resolvedReceipt)
+                            <span class="block text-xs text-gray-500 dark:text-gray-400 italic mt-1">
+                                (Agst Ch: #{{ $receipt->resolvedReceipt->cheque_no ?? 'N/A' }})
+                            </span>
+                        @endif
+                    </td>
+                    <td class="py-3 px-6 text-left">
+                        {{-- Show Deposit Date if Cheque & Deposited --}}
+                        @if ($receipt->payment_type === 'CHEQUE' && !is_null($receipt->deposit_date))
+                            {{ $receipt->deposit_date ? \Carbon\Carbon::parse($receipt->deposit_date)->format('d M Y') : 'N/A' }}
+                        {{-- Show Cheque Date if Cheque & Not Deposited --}}
+                        @elseif ($receipt->payment_type === 'CHEQUE' && is_null($receipt->deposit_date))
+                            {{ $receipt->cheque_date ? \Carbon\Carbon::parse($receipt->cheque_date)->format('d M Y') : 'N/A' }} (Cheque Date)
+                        {{-- Show Receipt Date for other types --}}
                         @else
                             {{ $receipt->receipt_date ? \Carbon\Carbon::parse($receipt->receipt_date)->format('d M Y') : 'N/A' }}
                         @endif
@@ -162,7 +190,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="py-3 px-6 text-center text-gray-500 dark:text-gray-400">No receipts found for this contract</td>
+                    <td colspan="7" class="py-3 px-6 text-center text-gray-500 dark:text-gray-400">No receipts found for this contract</td>
                 </tr>
                 @endforelse
             </tbody>
