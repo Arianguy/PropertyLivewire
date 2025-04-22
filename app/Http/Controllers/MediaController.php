@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\Support\Facades\Log;
 
 class MediaController extends Controller
 {
@@ -17,30 +18,27 @@ class MediaController extends Controller
      */
     public function show($id)
     {
-        $media = Media::findOrFail($id);
+        try {
+            $media = Media::findOrFail($id);
 
-        // Check if the user has permission to access this media
-        // You can add additional checks here based on user role or ownership
+            // Get the path to the file
+            $path = $media->getPath();
 
-        // Get the full path to the file
-        $path = $media->getPath();
+            // Verify file exists
+            if (!file_exists($path)) {
+                Log::error("Media file not found at path: {$path}");
+                abort(404, 'Media file not found');
+            }
 
-        // Set appropriate headers based on file type
-        $headers = [
-            'Content-Type' => $media->mime_type,
-            'Content-Disposition' => 'inline; filename="' . $media->file_name . '"',
-            'Cache-Control' => 'public, max-age=86400'
-        ];
+            // Set appropriate headers based on file type
+            $headers = $this->getSecureHeaders($media);
 
-        // Add additional headers for specific file types
-        if (str_starts_with($media->mime_type, 'image/')) {
-            $headers['Content-Type'] = $media->mime_type;
-        } elseif ($media->mime_type === 'application/pdf') {
-            $headers['Content-Type'] = 'application/pdf';
+            // Return the file with proper headers
+            return response()->file($path, $headers);
+        } catch (\Exception $e) {
+            Log::error("Error accessing media: " . $e->getMessage());
+            abort(500, 'Error accessing media file');
         }
-
-        // Return the file with proper headers
-        return response()->file($path, $headers);
     }
 
     /**
@@ -51,19 +49,25 @@ class MediaController extends Controller
      */
     public function download($id)
     {
-        $media = Media::findOrFail($id);
+        try {
+            $media = Media::findOrFail($id);
 
-        // Check if the user has permission to access this media
-        // You can add additional checks here based on user role or ownership
+            // Verify file exists
+            $path = $media->getPath();
+            if (!file_exists($path)) {
+                Log::error("Media file not found at path: {$path}");
+                abort(404, 'Media file not found');
+            }
 
-        return response()->download(
-            $media->getPath(),
-            $media->file_name,
-            [
-                'Content-Type' => $media->mime_type,
-                'Content-Disposition' => 'attachment; filename="' . $media->file_name . '"'
-            ]
-        );
+            return response()->download(
+                $path,
+                $media->file_name,
+                $this->getSecureHeaders($media, true)
+            );
+        } catch (\Exception $e) {
+            Log::error("Error downloading media: " . $e->getMessage());
+            abort(500, 'Error downloading media file');
+        }
     }
 
     /**
@@ -75,18 +79,55 @@ class MediaController extends Controller
      */
     public function thumbnail($id, $conversion = 'thumb')
     {
-        $media = Media::findOrFail($id);
+        try {
+            $media = Media::findOrFail($id);
 
-        if (!$media->hasGeneratedConversion($conversion)) {
-            $conversion = '';  // Use original if conversion doesn't exist
+            if (!$media->hasGeneratedConversion($conversion)) {
+                $conversion = '';  // Use original if conversion doesn't exist
+            }
+
+            $path = $conversion ? $media->getPath($conversion) : $media->getPath();
+
+            // Verify file exists
+            if (!file_exists($path)) {
+                Log::error("Thumbnail not found at path: {$path}");
+                abort(404, 'Thumbnail not found');
+            }
+
+            return response()->file($path, $this->getSecureHeaders($media));
+        } catch (\Exception $e) {
+            Log::error("Error accessing thumbnail: " . $e->getMessage());
+            abort(500, 'Error accessing thumbnail');
+        }
+    }
+
+    /**
+     * Get secure headers for media response
+     *
+     * @param Media $media
+     * @param bool $isDownload
+     * @return array
+     */
+    protected function getSecureHeaders(Media $media, bool $isDownload = false): array
+    {
+        $disposition = $isDownload ? 'attachment' : 'inline';
+
+        $headers = [
+            'Content-Type' => $media->mime_type,
+            'Content-Disposition' => $disposition . '; filename="' . $media->file_name . '"',
+            'Cache-Control' => 'private, no-transform, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+            'X-Content-Type-Options' => 'nosniff',
+            'X-Frame-Options' => 'SAMEORIGIN',
+            'X-XSS-Protection' => '1; mode=block'
+        ];
+
+        // Add specific headers for images
+        if (str_starts_with($media->mime_type, 'image/')) {
+            $headers['Content-Security-Policy'] = "default-src 'self'";
         }
 
-        $path = $conversion ? $media->getPath($conversion) : $media->getPath();
-
-        return response()->file($path, [
-            'Content-Type' => $media->mime_type,
-            'Content-Disposition' => 'inline; filename="' . $media->file_name . '"',
-            'Cache-Control' => 'public, max-age=86400'
-        ]);
+        return $headers;
     }
 }

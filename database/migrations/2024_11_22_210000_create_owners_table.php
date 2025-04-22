@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('email');
             $table->string('mobile');
             $table->string('nakheelno');
+            $table->text('address')->nullable();
             $table->timestamps();
         });
     }

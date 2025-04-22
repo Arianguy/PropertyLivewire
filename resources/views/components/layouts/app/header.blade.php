@@ -83,6 +83,15 @@
                             </div>
                         </flux:navmenu.item>
                         @endif
+
+                        @can('view payments')
+                        <flux:navmenu.item :href="route('payments.index')" :current="request()->routeIs('payments.*')" wire:navigate>
+                            <div class="flex items-center gap-2">
+                                <flux:icon name="credit-card" class="h-5 w-5" />
+                                <span>Payments</span>
+                            </div>
+                        </flux:navmenu.item>
+                        @endcan
                     </flux:navmenu>
                 </flux:dropdown>
                 @endif
@@ -261,6 +270,14 @@
                 <flux:navlist.group :heading="__('Transactions')" class="grid">
                     <flux:navlist.item icon="document-text" :href="route('contracts.table')" :current="request()->routeIs('contracts.*')" wire:navigate>{{ __('Contracts') }}</flux:navlist.item>
                     <flux:navlist.item icon="currency-dollar" :href="route('receipts.index')" :current="request()->routeIs('receipts.*')" wire:navigate>{{ __('Receipts') }}</flux:navlist.item>
+
+                    @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view-cheque-management'))
+                    <flux:navlist.item icon="banknotes" :href="route('cheque-management')" :current="request()->routeIs('cheque-management')" wire:navigate>{{ __('Cheque Management') }}</flux:navlist.item>
+                    @endif
+
+                    @can('view payments')
+                    <flux:navlist.item icon="credit-card" :href="route('payments.index')" :current="request()->routeIs('payments.*')" wire:navigate>{{ __('Payments') }}</flux:navlist.item>
+                    @endcan
                 </flux:navlist.group>
                 @endif
 

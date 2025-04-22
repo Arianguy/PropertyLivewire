@@ -22,11 +22,13 @@ return new class extends Migration
             $table->string('name');
             $table->date('cstart');
             $table->date('cend');
+            $table->date('close_date')->nullable();
             $table->decimal('amount', 10, 2);
             $table->decimal('sec_amt', 10, 2);
             $table->string('ejari')->default('NO');
             $table->string('validity')->default('NO');
             $table->string('type')->default('fresh');
+            $table->string('termination_reason')->nullable();
             $table->foreignId('previous_contract_id')->nullable()->constrained('contracts')->nullOnDelete();
             $table->timestamps();
         });

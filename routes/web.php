@@ -4,6 +4,8 @@ use Livewire\Volt\Volt;
 use App\Livewire\Config\RolesTable;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ReceiptsController;
+use App\Livewire\Payments\Index as PaymentIndex;
+use App\Livewire\Payments\PaymentForm;
 
 Route::get('/', function () {
     return view('welcome');
@@ -13,15 +15,40 @@ Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-Route::middleware(['auth'])->group(function () {
+// All routes requiring authentication
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Temporary route to check permissions
+    Route::get('/check-permissions', function () {
+        $user = auth()->user();
+        return [
+            'user' => [
+                'id' => $user->id,
+                'email' => $user->email,
+            ],
+            'roles' => $user->roles()->pluck('name')->toArray(),
+            'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
+            'can_create_payments' => $user->can('create payments'),
+        ];
+    });
+
     Route::redirect('settings', 'settings/profile');
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
     Volt::route('settings/password', 'settings.password')->name('settings.password');
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
-});
 
-// All routes requiring authentication
-Route::middleware(['auth', 'verified'])->group(function () {
+    // Payment routes
+    Route::prefix('payments')->group(function () {
+        Route::get('/', [App\Http\Controllers\PaymentController::class, 'index'])
+            ->middleware('role_or_permission:Super Admin|view payments')
+            ->name('payments.index');
+        Route::get('/create', [App\Http\Controllers\PaymentController::class, 'create'])
+            ->middleware('role_or_permission:Super Admin|create payments')
+            ->name('payments.create');
+        Route::get('/{payment}/edit', [App\Http\Controllers\PaymentController::class, 'edit'])
+            ->middleware('role_or_permission:Super Admin|edit payments')
+            ->name('payments.edit');
+    });
+
     // Add diagnostic route
     Route::get('/diagnose-permissions', function () {
         $user = auth()->guard('web')->user();
