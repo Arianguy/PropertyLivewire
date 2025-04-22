@@ -229,9 +229,9 @@
                             <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
                             <div class="mt-1">
                                 <select id="status" wire:model="status" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700">
-                                    <option value="Available">Available</option>
-                                    <option value="Rented">Rented</option>
-                                    <option value="Under Maintenance">Under Maintenance</option>
+                                    <option value="VACANT">VACANT</option>
+                                    <option value="LEASED">LEASED</option>
+                                    <option value="MAINTENANCE">MAINTENANCE</option>
                                 </select>
                             </div>
                             @error('status') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror

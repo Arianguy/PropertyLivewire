@@ -205,4 +205,6 @@
 
     <!-- Include the ViewAttachment component to handle attachment viewing -->
     @livewire('receipts.view-attachment')
+    <!-- Include the ResolveBouncedReceipt component to handle modal logic -->
+    @livewire('receipts.resolve-bounced-receipt')
 </div>

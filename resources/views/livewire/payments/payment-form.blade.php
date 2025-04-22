@@ -75,7 +75,7 @@
                     <label for="amount" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">Amount</label>
                     <div class="mt-2 relative rounded-md shadow-sm">
                         <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                            <span class="text-gray-500 sm:text-sm">$</span>
+                            <span class="text-gray-500 sm:text-sm"></span>
                         </div>
                         <input type="number" step="0.01" id="amount" wire:model="amount" class="block w-full rounded-md border-0 py-1.5 pl-7 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700" placeholder="0.00">
                         @error('amount') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
@@ -186,14 +186,18 @@
                     </div>
                     @error('attachments.*') <span class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</span> @enderror
 
-                    <!-- Existing Attachments -->
-                    @if(!empty($existingAttachments))
+                    @if($editing && !empty($existingAttachments))
                         <div class="mt-4 space-y-2">
                             <h4 class="text-sm font-medium text-gray-700 dark:text-gray-200">Existing Attachments</h4>
                             @foreach($existingAttachments as $attachment)
-                                <div class="flex items-center justify-between py-2 px-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                    <span class="text-sm text-gray-700 dark:text-gray-200">{{ $attachment['file_name'] }}</span>
-                                    <button type="button" wire:click="markAttachmentForRemoval({{ $attachment['id'] }})" class="text-red-600 hover:text-red-800">
+                                <div wire:key="existing-attachment-{{ $attachment['id'] }}" class="flex items-center justify-between py-2 px-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                    <div class="flex items-center space-x-2 truncate">
+                                        <flux:icon name="document-text" class="h-5 w-5 text-gray-400 flex-shrink-0" />
+                                        <a href="{{ $attachment['url'] ?? '#' }}" target="_blank" class="text-sm text-gray-700 dark:text-gray-200 hover:underline truncate" title="{{ $attachment['file_name'] }}">
+                                            {{ $attachment['file_name'] }}
+                                        </a>
+                                    </div>
+                                    <button type="button" wire:click="markAttachmentForRemoval({{ $attachment['id'] }})" class="ml-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium">
                                         Remove
                                     </button>
                                 </div>

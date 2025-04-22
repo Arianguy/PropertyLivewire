@@ -71,17 +71,18 @@ class Index extends Component
 
     public function getPropertiesProperty()
     {
-        // Fetch properties accessible to the user (adjust based on your logic, e.g., ownership/management)
+        // Fetch properties and format as id => name array for the select dropdown
         return Property::query()
             ->orderBy('name')
-            ->get();
+            ->pluck('name', 'id'); // Use pluck to get id => name
     }
 
     public function getPaymentTypesProperty()
     {
+        // Fetch payment types and format as id => name array for the select dropdown
         return PaymentType::query()
             ->orderBy('name')
-            ->get();
+            ->pluck('name', 'id'); // Use pluck to get id => name
     }
 
     public function delete(int $paymentId): void // Accept ID instead of model for simpler deletion
@@ -95,6 +96,12 @@ class Index extends Component
         $payment->delete();
 
         $this->dispatch('notify', title: 'Success', message: 'Payment deleted successfully.', type: 'success');
+    }
+
+    // Dispatch event to open attachments modal
+    public function showAttachments(int $paymentId): void
+    {
+        $this->dispatch('showPaymentAttachments', paymentId: $paymentId);
     }
 
     public function render()

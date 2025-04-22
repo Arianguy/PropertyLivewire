@@ -19,7 +19,7 @@
              x-transition:leave-end="opacity-0"
              class="fixed inset-0 bg-gray-500 bg-opacity-50 transition-opacity dark:bg-gray-900 dark:bg-opacity-75"
              @click="show = false" <!-- Close modal on overlay click -->
-             aria-hidden="true">
+
         </div>
 
         <!-- Centered modal content -->
