@@ -7,7 +7,29 @@
                     View and manage contract details.
                 </p>
             </div>
-            <div class="flex space-x-3">
+            <div class="flex items-center space-x-3">
+                {{-- Email Report Button --}}
+                <button wire:click="emailPdfReport" wire:loading.attr="disabled" wire:target="emailPdfReport" type="button" class="p-1.5 rounded-md bg-white text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:bg-gray-600">
+                    <span class="sr-only">Email Report</span>
+                    <div wire:loading wire:target="emailPdfReport" class="animate-spin">
+                        <flux:icon name="arrow-path" class="h-5 w-5" />
+                    </div>
+                    <div wire:loading.remove wire:target="emailPdfReport">
+                        <flux:icon name="envelope" class="h-5 w-5" />
+                    </div>
+                </button>
+
+                {{-- Print Report Button --}}
+                <button wire:click="exportToPdf" wire:loading.attr="disabled" wire:target="exportToPdf" type="button" class="p-1.5 rounded-md bg-white text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:bg-gray-600">
+                    <span class="sr-only">Print Report</span>
+                    <div wire:loading wire:target="exportToPdf" class="animate-spin">
+                        <flux:icon name="arrow-path" class="h-5 w-5" />
+                    </div>
+                    <div wire:loading.remove wire:target="exportToPdf">
+                        <flux:icon name="printer" class="h-5 w-5" />
+                    </div>
+                </button>
+
                 @if($contract->validity === 'YES' && !$contract->renewals()->exists())
                     @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('renew contracts'))
                     <a href="{{ route('contracts.renew', $contract) }}" class="inline-flex items-center gap-x-1.5 rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600">
