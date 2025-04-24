@@ -169,7 +169,7 @@ class Edit extends Component
     public function rules()
     {
         $rules = [
-            'receipt_category' => 'required|in:SECURITY_DEPOSIT,RENT',
+            'receipt_category' => 'required|in:SECURITY_DEPOSIT,RENT,RETURN CHEQUE',
             'payment_type' => 'required|in:CASH,CHEQUE,ONLINE_TRANSFER',
             'amount' => 'required|numeric|min:0.01',
             'receipt_date' => 'required|date',

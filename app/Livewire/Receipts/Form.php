@@ -70,7 +70,7 @@ class Form extends Component
         $rules = [];
 
         foreach ($this->receipts as $index => $receipt) {
-            $rules["receipts.$index.receipt_category"] = 'required|in:SECURITY_DEPOSIT,RENT';
+            $rules["receipts.$index.receipt_category"] = 'required|in:SECURITY_DEPOSIT,RENT,RETURN CHEQUE';
             $rules["receipts.$index.payment_type"] = 'required|in:CASH,CHEQUE,ONLINE_TRANSFER';
             $rules["receipts.$index.amount"] = 'required|numeric|min:0.01';
             $rules["receipts.$index.narration"] = 'required|string|max:255';

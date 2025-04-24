@@ -95,6 +95,45 @@
                     </flux:navmenu>
                 </flux:dropdown>
                 @endif
+
+                @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('view reports'))
+                    <flux:dropdown>
+                    <flux:navbar.item icon:trailing="chevron-down">Reports</flux:navbar.item>
+                    <flux:navmenu>
+                        <flux:navmenu.item :href="route('contracts.table')" :current="request()->routeIs('contracts.*')" wire:navigate>
+                            <div class="flex items-center gap-2">
+                                <flux:icon name="document-text" class="h-5 w-5" />
+                                <span>Tenant Reports</span>
+                            </div>
+                        </flux:navmenu.item>
+
+                        <flux:navmenu.item :href="route('receipts.index')" :current="request()->routeIs('receipts.*')" wire:navigate>
+                            <div class="flex items-center gap-2">
+                                <flux:icon name="currency-dollar" class="h-5 w-5" />
+                                <span>Property Reports</span>
+                            </div>
+                        </flux:navmenu.item>
+
+
+                        <flux:navmenu.item :href="route('cheque-management')" :current="request()->routeIs('cheque-management')" wire:navigate>
+                            <div class="flex items-center gap-2">
+                                <flux:icon name="banknotes" class="h-5 w-5" />
+                                <span>Contract Reports</span>
+                            </div>
+                        </flux:navmenu.item>
+
+
+
+                        <flux:navmenu.item :href="route('payments.index')" :current="request()->routeIs('payments.*')" wire:navigate>
+                            <div class="flex items-center gap-2">
+                                <flux:icon name="credit-card" class="h-5 w-5" />
+                                <span>Financial Reports</span>
+                            </div>
+                        </flux:navmenu.item>
+
+                    </flux:navmenu>
+                    </flux:dropdown>
+                @endif
             </flux:navbar>
 
             <flux:spacer />

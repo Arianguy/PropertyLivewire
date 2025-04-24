@@ -60,7 +60,25 @@
                         </div>
                         <div class="bg-white dark:bg-gray-800 px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Rental Amount</dt>
-                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">${{ number_format($contract->amount, 2) }}</dd>
+                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">
+                                <span class="font-semibold">${{ number_format($contract->amount, 2) }}</span>
+                                <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                    <span>Collection Scheduled: <span class="font-medium">${{ number_format($totalRentScheduled, 2) }}</span></span>
+                                    @if($balanceDue > 0)
+                                        {{-- balanceDue represents the unscheduled portion --}}
+                                        <span class="ml-2">Unscheduled: <span class="text-yellow-600 dark:text-yellow-400 font-medium">${{ number_format($balanceDue, 2) }}</span></span>
+                                    @endif
+                                </div>
+                                @if($balanceDue > 0)
+                                    {{-- Removing the previous unscheduled display as it's moved above --}}
+                                @endif
+                                <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                    <span>Realized Amount: <span class="text-green-600 dark:text-green-400 font-medium">${{ number_format($totalRentCleared, 2) }}</span></span>
+                                    @if($totalRentPendingClearance > 0)
+                                        <span class="ml-2">Balance Pending Realization: <span class="text-red-600 dark:text-red-400 font-medium">${{ number_format($totalRentPendingClearance, 2) }}</span></span>
+                                    @endif
+                                </div>
+                            </dd>
                         </div>
                         <div class="bg-gray-50 dark:bg-gray-900/50 px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Security Deposit</dt>

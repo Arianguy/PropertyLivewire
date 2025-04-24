@@ -39,6 +39,7 @@
                                 <select id="receipt_category_{{ $index }}" wire:model.live="receipts.{{ $index }}.receipt_category"
                                         class="appearance-none block w-full pl-3 pr-10 py-1.5 text-sm border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 bg-no-repeat bg-[position:right_0.5rem_center] bg-[size:1.5em_1.5em] bg-[url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")] dark:bg-[url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")]">
                                     <option value="RENT">Rent</option>
+                                    <option value="RETURN CHEQUE">Return Cheque</option>
                                     <option value="SECURITY_DEPOSIT">Security Deposit</option>
                                 </select>
                             </div>

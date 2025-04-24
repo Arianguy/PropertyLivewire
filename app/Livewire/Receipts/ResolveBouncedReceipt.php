@@ -103,7 +103,7 @@ class ResolveBouncedReceipt extends Component
 
             $newReceipt = Receipt::create([
                 'contract_id' => $this->contractId,
-                'receipt_category' => $this->bouncedReceipt->receipt_category, // Inherit category
+                'receipt_category' => 'RETURN CHEQUE', // Set category to RETURN CHEQUE
                 'payment_type' => $validated['payment_type'],
                 'amount' => $validated['amount'],
                 'receipt_date' => $validated['receipt_date'],

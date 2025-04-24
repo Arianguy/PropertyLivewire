@@ -3,7 +3,9 @@
 namespace App\Livewire\Contracts;
 
 use App\Models\Contract;
+use App\Models\Receipt;
 use Livewire\Component;
+use Illuminate\Support\Collection;
 
 class Show extends Component
 {
@@ -12,11 +14,39 @@ class Show extends Component
     public $previousContracts = [];
     public $renewalContracts = [];
 
+    public float $totalRentScheduled = 0;
+    public float $totalRentCleared = 0;
+    public float $totalRentPendingClearance = 0;
+    public float $balanceDue = 0;
+
     public function mount(Contract $contract)
     {
-        $this->contract = $contract;
+        $this->contract = $contract->load(['receipts' => function ($query) {
+            $query->select('id', 'contract_id', 'receipt_category', 'amount', 'status', 'payment_type', 'cheque_no', 'narration', 'receipt_date');
+        }]);
         $this->loadMedia();
         $this->loadContractHistory();
+        $this->calculateRentTotals();
+    }
+
+    public function calculateRentTotals()
+    {
+        $allReceipts = $this->contract->receipts ?? collect();
+        $rentReceipts = $allReceipts->where('receipt_category', 'RENT');
+
+        // 1. Collection Scheduled: Sum of RENT category receipts
+        $this->totalRentScheduled = $rentReceipts->sum('amount');
+
+        // 2. Unscheduled: Contract Amount - Collection Scheduled
+        $this->balanceDue = max(0, $this->contract->amount - $this->totalRentScheduled);
+
+        // 3. Realized Amount: Sum of CLEARED RENT receipts + RETURN CHEQUE receipts
+        $clearedRent = $rentReceipts->where('status', 'CLEARED')->sum('amount');
+        $returnChequePayments = $allReceipts->where('receipt_category', 'RETURN CHEQUE')->sum('amount'); // Assuming RETURN CHEQUE category implies realized funds
+        $this->totalRentCleared = $clearedRent + $returnChequePayments;
+
+        // 4. Balance Pending Realization: Total Contract Amount - Realized Amount
+        $this->totalRentPendingClearance = max(0, $this->contract->amount - $this->totalRentCleared);
     }
 
     public function loadMedia()

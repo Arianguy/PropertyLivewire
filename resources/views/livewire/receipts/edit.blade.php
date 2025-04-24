@@ -62,6 +62,7 @@
                             <select id="receipt_category" wire:model="receipt_category" required
                                 class="mt-1 block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 <option value="RENT">Rent</option>
+                                <option value="RETURN CHEQUE">Return Cheque</option>
                                 <option value="SECURITY_DEPOSIT">Security Deposit</option>
                             </select>
                             @error('receipt_category')
