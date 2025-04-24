@@ -69,8 +69,17 @@
                                 {!! $sortableHeader('property_id', 'Property', $sortBy, $sortDirection) !!}
                                 <th scope="col" class="{{ $headerClasses }}">Contract</th> {{-- Non-sortable --}}
                                 {!! $sortableHeader('payment_type_id', 'Type', $sortBy, $sortDirection) !!}
-                                {{-- Amount Header (Right Aligned) --}}
-                                {!! str_replace('text-left', 'text-right', $sortableHeader('amount', 'Amount', $sortBy, $sortDirection)) !!}
+                                {{-- Amount Header (Manual Definition for Alignment - Now Left) --}}
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 cursor-pointer" wire:click="sortBy('amount')">
+                                    <div class="flex items-center"> {{-- Removed justify-end --}}
+                                        <span>Amount</span>
+                                        @php
+                                            $isSortingAmount = $sortBy === 'amount';
+                                            $amountDirectionIcon = $isSortingAmount ? ($sortDirection === 'asc' ? 'chevron-up' : 'chevron-down') : 'chevron-up-down';
+                                        @endphp
+                                        <flux:icon name="{{ $amountDirectionIcon }}" class="ml-2 h-4 w-4 {{ $isSortingAmount ? '' : 'text-gray-400 dark:text-gray-500' }}" />
+                                    </div>
+                                </th>
                                 {{-- Description Header (Moved) --}}
                                 {!! $sortableHeader('description', 'Description', $sortBy, $sortDirection) !!}
                                 {{-- Removed Attachments Header --}}
@@ -84,10 +93,10 @@
                                     <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">{{ $payment->property?->name ?? 'N/A' }}</td>
                                     <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">{{ $payment->contract?->contract_number ?? '-' }}</td>
                                     <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">{{ $payment->paymentType?->name ?? 'N/A' }}</td>
-                                    {{-- Amount Cell (Already Right Aligned) --}}
-                                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400 text-right">{{ number_format($payment->amount, 2) }}</td>
-                                    {{-- Description Cell (Moved, Wrapping Enabled) --}}
-                                    <td class="px-3 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-xs">{{ $payment->description }}</td>
+                                    {{-- Amount Cell (Matches Manual Header Padding - Now Left) --}}
+                                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400 text-left">{{ number_format($payment->amount, 2) }}</td>
+                                    {{-- Description Cell (Moved, Wrapping Enabled with break-words) --}}
+                                    <td class="px-3 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-xs break-words">{{ $payment->description }}</td>
                                     {{-- Removed Attachments Cell --}}
                                     <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                         {{-- Actions using standard links/buttons + flux icons --}}

@@ -235,4 +235,20 @@ Route::middleware(['auth', 'verified', App\Http\Middleware\ProtectMediaAccess::c
     Route::get('/media/{id}/thumbnail/{conversion?}', [App\Http\Controllers\MediaController::class, 'thumbnail'])->name('media.thumbnail');
 });
 
+
+use Illuminate\Support\Facades\Mail;
+
+// Route::get('/test-email', function () {
+//     try {
+//         Mail::raw('This is a test email.', function ($message) {
+//             $message->to('savio.vincent@gmail.com') // REPLACE WITH A REAL EMAIL ADDRESS YOU CAN CHECK
+//                 ->subject('Test Email from Laravel');
+//         });
+//         return 'Test email sent successfully! Check your inbox.';
+//     } catch (\Exception $e) {
+//         Log::error('Email sending failed: ' . $e->getMessage());
+//         return 'Failed to send test email. Check logs for details. Error: ' . $e->getMessage();
+//     }
+// });
+
 require __DIR__ . '/auth.php';
