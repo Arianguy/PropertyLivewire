@@ -11,6 +11,7 @@ use App\Mail\ContractReportMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class Show extends Component
 {
@@ -210,6 +211,47 @@ class Show extends Component
             // Use the more specific log call below
             Log::error('Error emailing contract PDF: ' . $e->getMessage(), ['contract_id' => $this->contract->id]);
             $this->dispatch('notify', ['type' => 'error', 'message' => 'Could not email PDF report.']);
+        }
+    }
+
+    /**
+     * Closes the contract (sets validity to NO, type to Closed, property to VACANT).
+     */
+    public function closeContract()
+    {
+        // Basic check - perhaps add more robust permission checks later if needed
+        if ($this->contract->validity !== 'YES') {
+            $this->dispatch('notify', ['type' => 'error', 'message' => 'Contract is already inactive.']);
+            return;
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Update the contract
+            $this->contract->update([
+                'validity' => 'NO',
+                'type' => 'Closed', // Set type to Closed
+            ]);
+
+            // Update the property status
+            $this->contract->property()->update(['status' => 'VACANT']);
+
+            DB::commit();
+
+            // Reload the contract data to reflect changes
+            $this->contract->refresh();
+            $this->calculateRentTotals(); // Recalculate totals if needed
+
+            $this->dispatch('notify', ['type' => 'success', 'message' => 'Contract closed successfully.']);
+
+            // Optional: Redirect or just refresh component state
+            // return redirect()->route('contracts.show', $this->contract);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error closing contract: ' . $e->getMessage(), ['contract_id' => $this->contract->id]);
+            $this->dispatch('notify', ['type' => 'error', 'message' => 'Error closing contract.']);
         }
     }
 }
