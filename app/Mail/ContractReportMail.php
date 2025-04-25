@@ -13,6 +13,7 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
+use App\Models\SecurityDepositSettlement as Settlement;
 
 class ContractReportMail extends Mailable implements ShouldQueue
 {
@@ -71,7 +72,17 @@ class ContractReportMail extends Mailable implements ShouldQueue
      */
     public function content(): Content
     {
-        $timestamp = now()->format('Y-m-d H:i:s'); // Generate timestamp for email body
+        $timestamp = now()->format('Y-m-d H:i:s');
+
+        // Fetch required data within the job for the email body
+        $contract = Contract::with('receipts', 'settlement')->find($this->contractId);
+        if (!$contract) {
+            Log::error("Could not find Contract {$this->contractId} inside ContractReportMail content generation.");
+            // Return empty content or fallback view?
+            // For now, we'll proceed but data might be missing in the view.
+            $contract = new Contract(); // Avoid errors in view, but data will be wrong
+        }
+        $settlement = $contract->settlement; // Get settlement from loaded relationship
 
         // Fetch user name specifically for email body content
         $userNameForBody = 'N/A';
@@ -81,13 +92,24 @@ class ContractReportMail extends Mailable implements ShouldQueue
         }
 
         return new Content(
-            markdown: 'emails.contracts.report',
+            view: 'emails.contracts.report-html', // Use HTML view
             with: [
                 'contractName' => $this->contractName,
                 'tenantName' => $this->tenantName,
                 'propertyName' => $this->propertyName,
                 'userName' => $userNameForBody, // Use name fetched for body
                 'timestamp' => $timestamp,
+                // Pass full objects/collections needed by the HTML view
+                'contractType' => $contract->type ?? null,
+                'contractStatus' => $contract->validity === 'YES' ? 'Active' : 'Inactive',
+                'terminationReason' => $contract->termination_reason ?? null,
+                'settlement' => $settlement, // Pass the settlement object (or null)
+                'receipts' => $contract->receipts ?? collect(), // Pass receipts collection
+                // Pass calculated totals as well
+                'totalRentScheduled' => $this->totalRentScheduled,
+                'balanceDue' => $this->balanceDue,
+                'totalRentCleared' => $this->totalRentCleared,
+                'totalRentPendingClearance' => $this->totalRentPendingClearance,
             ],
         );
     }
@@ -102,8 +124,8 @@ class ContractReportMail extends Mailable implements ShouldQueue
         Log::debug("Generating PDF attachment inside Mailable for Contract ID: {$this->contractId}");
 
         try {
-            // Fetch the contract with necessary relations inside the job
-            $contract = Contract::with('tenant', 'property', 'receipts')->find($this->contractId);
+            // Fetch the contract with necessary relations AND settlement inside the job
+            $contract = Contract::with('tenant', 'property', 'receipts', 'settlement')->find($this->contractId);
 
             if (!$contract) {
                 Log::error("Could not find Contract {$this->contractId} inside ContractReportMail job.");
@@ -134,7 +156,17 @@ class ContractReportMail extends Mailable implements ShouldQueue
                 'balanceDue' => $this->balanceDue,
                 'totalRentCleared' => $this->totalRentCleared,
                 'totalRentPendingClearance' => $this->totalRentPendingClearance,
+                // Pass the settlement object itself (or null)
+                'settlement' => $contract->settlement,
             ];
+
+            // Debugging: Check the settlement data before passing to view
+            Log::debug("Data being passed to PDF view in ContractReportMail:", [
+                'contract_id' => $this->contractId,
+                'settlement_type' => gettype($contract->settlement),
+                'settlement_is_null' => is_null($contract->settlement),
+                'settlement_data' => $contract->settlement ? $contract->settlement->toArray() : null // Log data if not null
+            ]);
 
             $pdf = Pdf::loadView('reports.contract-details', $data);
             $pdfData = $pdf->output();

@@ -1,6 +1,6 @@
 ---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: true
 ---
 You are an expert in Laravel 11, PHP, Livewire, Alpine.js, TailwindCSS, Flux UI.
@@ -93,4 +93,4 @@ Essential Guidelines and Best Practices
 - Use Tailwind CSS and Flux UI for consistent and efficient styling.
 - Implement complex UI patterns using Livewire and Alpine.js.
 
-AFTER EVERY CHANGE, TEST IN THE BROWSER MCP.
+Dont use Currency Symbols for Amounts.

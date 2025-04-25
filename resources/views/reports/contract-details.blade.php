@@ -6,33 +6,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contract Report - {{ $contract->name }}</title>
     <style>
-        @page { margin: 25px; }
+        @page { margin: 20px; } /* Slightly reduced margin */
         body {
-            font-family: 'Helvetica', 'Arial', sans-serif; /* Common sans-serif */
-            font-size: 10px;
-            line-height: 1.5;
-            color: #333; /* Dark gray for text */
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 9px; /* Slightly smaller base font */
+            line-height: 1.4; /* Adjusted line height */
+            color: #333;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 15px; /* Adjusted */
         }
         th, td {
-            border: 1px solid #ccc; /* Lighter gray border */
-            padding: 8px; /* Slightly more padding */
+            border: 1px solid #ccc;
+            padding: 6px; /* Adjusted */
             text-align: left;
             vertical-align: top;
+            font-size: 9px; /* Consistent font size */
         }
         th {
-            background-color: #e9ecef; /* Light gray background for headers */
-            color: #495057; /* Darker gray text for headers */
+            background-color: #e9ecef;
+            color: #495057;
             font-weight: bold;
             text-transform: uppercase;
-            font-size: 9px;
         }
         tbody tr:nth-child(even) {
-            background-color: #f8f9fa; /* Very light gray for alternating rows */
+            background-color: #f8f9fa;
         }
         h1, h2, h3 {
             margin-top: 25px;
@@ -40,65 +40,63 @@
             color: #444; /* Slightly darker heading color */
         }
         h1 {
-            font-size: 20px;
+            font-size: 18px; /* Adjusted */
             text-align: center;
-            color: #222; /* Darkest heading */
-            border-bottom: 2px solid #6c757d; /* Medium gray border */
-            padding-bottom: 10px;
-            margin-bottom: 30px;
+            color: #222;
+            border-bottom: 2px solid #6c757d;
+            padding-bottom: 8px; /* Adjusted */
+            margin-bottom: 20px; /* Adjusted */
+            margin-top: 0; /* Remove top margin */
         }
         h2 {
-            font-size: 15px;
-            border-bottom: 1px solid #dee2e6; /* Light border under section titles */
-            padding-bottom: 8px;
-            color: #007bff; /* Using a blue - check grayscale */
-            /* Or use a safe gray: color: #5a6268; */
+            font-size: 14px; /* Adjusted */
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 6px; /* Adjusted */
+            color: #4682b4;
+            margin-bottom: 10px; /* Adjusted */
+            margin-top: 20px; /* Add top margin */
         }
-        h3 {
-            font-size: 12px;
-            font-weight: bold;
+        h3 { /* Used inside Rent Summary */
+            font-size: 14px; /* Match h2 */
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 6px;
+            color: #4682b4;
             margin-bottom: 10px;
+            margin-top: 0; /* Keep no top margin here */
+            font-weight: bold;
         }
         .details-grid {
-            margin-bottom: 25px;
-            background-color: #f0f8ff; /* Light AliceBlue background (like amount summary) */
-            padding: 15px;
-            border: 1px solid #b0e0e6; /* PowderBlue border (like amount summary) */
-            border-radius: 4px;
+            margin-bottom: 0;
+            padding: 0; /* Remove padding */
         }
         .details-grid dt {
             font-weight: bold;
             float: left;
-            width: 160px; /* Adjusted width */
+            width: 140px; /* Adjusted width */
             clear: left;
             color: #555;
+            padding-bottom: 5px; /* Add spacing */
         }
         .details-grid dd {
-            margin-left: 170px; /* Adjusted margin */
-            margin-bottom: 8px;
+            margin-left: 150px; /* Adjusted margin */
+            margin-bottom: 5px; /* Adjusted */
             color: #333;
+            padding-bottom: 5px; /* Add spacing */
         }
-        /* Clearfix for the definition list float */
         .details-grid dl::after {
             content: "";
             display: table;
             clear: both;
         }
         .amount-summary {
-            margin-bottom: 25px;
-            padding: 15px;
-            background-color: #f0f8ff; /* Light AliceBlue background */
-            border: 1px solid #b0e0e6; /* PowderBlue border */
-            border-radius: 4px;
-        }
-        .amount-summary h3 {
+            margin-bottom: 0;
             margin-top: 0;
-            color: #4682b4; /* SteelBlue */
+            padding: 0; /* Remove padding */
         }
         .amount-summary span {
             display: block;
-            margin-bottom: 5px;
-            font-size: 11px;
+            margin-bottom: 4px; /* Adjusted */
+            font-size: 10px; /* Adjusted */
         }
         .page-break {
             page-break-after: always;
@@ -119,8 +117,7 @@
         }
         /* Specific style for heading within the details grid */
         .details-grid h2 {
-             color: #4682b4; /* SteelBlue like amount summary heading */
-             border-bottom: 1px solid #b0e0e6; /* Match border color */
+             /* Styles now handled by general h2 */
         }
         /* Status Text Colors */
         .status-cleared {
@@ -151,13 +148,38 @@
             color: #383d41; /* Dark gray */
             background-color: #e2e3e5; /* Light gray */
             padding: 3px 6px;
-            border-radius: 4px;
+            border-border-radius: 4px;
             font-weight: bold;
             font-size: 9px;
         }
         .status-other {
             /* Default style for any other status */
         }
+        /* New styles for top table layout */
+        .top-layout-table { width: 100%; border-collapse: separate; border-spacing: 0 15px; /* Spacing between rows */ margin-bottom: 20px; }
+        .top-layout-table > tbody > tr > td {
+            vertical-align: top;
+            border: 1px solid #b0e0e6; /* Border from info-box */
+            background-color: #f0f8ff; /* Background from info-box */
+            padding: 10px 15px;
+            border-radius: 4px;
+        }
+        .top-layout-table > tbody > tr > td.contract-info-cell { width: 65%; padding-right: 10px; } /* Adjust width */
+        .top-layout-table > tbody > tr > td.rent-summary-cell { width: 35%; padding-left: 10px; } /* Adjust width */
+
+        /* Ensure h2/h3 inside cells have no top margin */
+        .top-layout-table h2, .top-layout-table h3 {
+            margin-top: 0;
+        }
+
+        /* Remove background/border from info-box as it's on the table cells now */
+        .info-box {
+            /* background-color: #f0f8ff; */
+            padding: 0; /* Remove padding */
+            /* border: 1px solid #b0e0e6; */
+            border-radius: 0; /* Remove radius */
+            margin-bottom: 0; /* Remove margin */
+         }
     </style>
 </head>
 <body>
@@ -167,43 +189,91 @@
 
     <h1>Contract Report - #{{ $contract->name }}</h1>
 
-    <h2>Contract Information</h2>
-    <div class="details-grid">
-        <dl>
-            <dt>Tenant:</dt>
-            <dd>{{ $contract->tenant->name }}</dd>
-            <dt>Property:</dt>
-            <dd>{{ $contract->property->name }}</dd>
-            <dt>Contract Period:</dt>
-            <dd>{{ $contract->cstart->format('M d, Y') }} - {{ $contract->cend->format('M d, Y') }}</dd>
-            <dt>Rental Amount:</dt>
-            <dd>${{ number_format($contract->amount, 2) }}</dd>
-            <dt>Security Deposit:</dt>
-            <dd>${{ number_format($contract->sec_amt, 2) }}</dd>
-            <dt>Ejari:</dt>
-            <dd>{{ $contract->ejari }}</dd>
-            <dt>Contract Type:</dt>
-            <dd>{{ ucfirst($contract->type) }}</dd>
-            <dt>Status:</dt>
-            <dd>{{ $contract->validity === 'YES' ? 'Active' : 'Inactive' }}</dd>
-            @if($contract->termination_reason)
-                <dt>Termination Reason:</dt>
-                <dd>{{ $contract->termination_reason }}</dd>
-            @endif
-        </dl>
-    </div>
+    {{-- Top Section Table Layout --}}
+    <table class="top-layout-table">
+        <tr>
+            <td class="contract-info-cell">
+                 <h2>Contract Information</h2>
+                 <div class="details-grid">
+                     <dl>
+                         <dt>Tenant:</dt><dd>{{ $contract->tenant->name }}</dd>
+                         <dt>Property:</dt><dd>{{ $contract->property->name }}</dd>
+                         <dt>Contract Period:</dt><dd>{{ $contract->cstart->format('M d, Y') }} - {{ $contract->cend->format('M d, Y') }}</dd>
+                         <dt>Rental Amount:</dt><dd>${{ number_format($contract->amount, 2) }}</dd>
+                         <dt>Security Deposit:</dt><dd>${{ number_format($contract->sec_amt, 2) }}</dd>
+                         <dt>Ejari:</dt><dd>{{ $contract->ejari }}</dd>
+                         <dt>Contract Type:</dt><dd>{{ $contract->type === 'terminated' ? 'Terminated' : ucfirst($contract->type) }}</dd>
+                         <dt>Status:</dt><dd>{{ $contract->validity === 'YES' ? 'Active' : 'Inactive' }}</dd>
+                         @if($contract->termination_reason)<dt>Termination Reason:</dt><dd>{{ $contract->termination_reason }}</dd>@endif
+                         @if($settlement)<dt>Settlement Status:</dt><dd style="color: #155724; font-weight: bold;">Settled on {{ $settlement->created_at->format('M d, Y') }}</dd>@endif
+                     </dl>
+                 </div>
+            </td>
+            <td class="rent-summary-cell">
+                <div class="amount-summary">
+                    <h3>Rent Summary</h3>
+                    <span>Collection Scheduled: ${{ number_format($totalRentScheduled, 2) }}</span>
+                    @if($balanceDue > 0)<span>Unscheduled: ${{ number_format($balanceDue, 2) }}</span>@endif
+                    <span>Realized Amount: ${{ number_format($totalRentCleared, 2) }}</span>
+                    @if($totalRentPendingClearance > 0)<span>Balance Pending Realization: ${{ number_format($totalRentPendingClearance, 2) }}</span>@endif
+                </div>
+            </td>
+        </tr>
+    </table>
+    {{-- End Top Section --}}
 
-    <div class="amount-summary">
-        <h3>Rent Summary</h3>
-        <span>Collection Scheduled: ${{ number_format($totalRentScheduled, 2) }}</span>
-        @if($balanceDue > 0)
-            <span>Unscheduled: ${{ number_format($balanceDue, 2) }}</span>
-        @endif
-        <span>Realized Amount: ${{ number_format($totalRentCleared, 2) }}</span>
-        @if($totalRentPendingClearance > 0)
-            <span>Balance Pending Realization: ${{ number_format($totalRentPendingClearance, 2) }}</span>
-        @endif
-    </div>
+    {{-- Settlement Details Section (Only show if settled) --}}
+    @if($settlement)
+        <h2>Settlement Details</h2>
+        <table style="width: 100%; border: none;">
+            <tr style="border: none;">
+                <td style="width: 50%; vertical-align: top; border: none; padding-right: 10px;">
+                    <table class="settlement-details-table">
+                        <tbody>
+                            <tr>
+                                <td>Original Deposit Amount</td>
+                                <td>${{ number_format($settlement->original_deposit_amount, 2) }}</td>
+                            </tr>
+                            <tr>
+                                <td>Deduction Amount</td>
+                                <td>${{ number_format($settlement->deduction_amount, 2) }}</td>
+                            </tr>
+                            <tr>
+                                <td>Return Amount</td>
+                                <td style="font-weight: bold;">${{ number_format($settlement->return_amount, 2) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+                <td style="width: 50%; vertical-align: top; border: none; padding-left: 10px;">
+                    <table class="settlement-details-table">
+                        <tbody>
+                            <tr>
+                                <td>Return Date</td>
+                                <td>{{ $settlement->return_date->format('M d, Y') }}</td>
+                            </tr>
+                            <tr>
+                                <td>Return Payment Type</td>
+                                <td>{{ $settlement->return_payment_type }}</td>
+                            </tr>
+                            @if(in_array($settlement->return_payment_type, ['CHEQUE', 'ONLINE_TRANSFER']))
+                            <tr>
+                                <td>Return Reference</td>
+                                <td>{{ $settlement->return_reference ?: 'N/A' }}</td>
+                            </tr>
+                            @endif
+                            @if($settlement->notes)
+                            <tr>
+                                <td>Settlement Notes</td>
+                                <td>{{ $settlement->notes }}</td>
+                            </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    @endif
 
     <h2>Receipt History</h2>
     <table>

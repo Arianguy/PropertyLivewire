@@ -138,16 +138,22 @@ class Show extends Component
      */
     private function generatePdfData(): string
     {
-        // Ensure fresh data is loaded if needed, calculations already done in mount
+        // Ensure fresh data is loaded including settlement
+        $this->contract->loadMissing('tenant', 'property', 'receipts', 'settlement');
+        $hasSettlement = $this->contract->settlement !== null;
+        $settlementDate = $hasSettlement ? $this->contract->settlement->created_at : null;
+
         $initiatingUserName = Auth::user() ? Auth::user()->name : 'N/A'; // Get user name for direct download
 
         $data = [
-            'contract' => $this->contract->load('tenant', 'property', 'receipts'), // Ensure relations are loaded
+            'contract' => $this->contract,
             'totalRentScheduled' => $this->totalRentScheduled,
             'userName' => $initiatingUserName, // Add user name for direct download
             'balanceDue' => $this->balanceDue,
             'totalRentCleared' => $this->totalRentCleared,
             'totalRentPendingClearance' => $this->totalRentPendingClearance,
+            // Add settlement data for PDF view
+            'settlement' => $this->contract->settlement, // Pass the whole object or null
         ];
 
         $pdf = Pdf::loadView('reports.contract-details', $data);

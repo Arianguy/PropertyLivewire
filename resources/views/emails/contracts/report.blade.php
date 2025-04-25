@@ -6,6 +6,10 @@ Please find the contract report for **{{ $contractName }}** attached.
 Tenant: **{{ $tenantName }}**
 Property: **{{ $propertyName }}**
 
+@if($hasSettlement)
+Security Deposit Status: Settled on {{ $settlementDate->format('M d, Y') }}
+@endif
+
 Thanks,<br>
 <hr>
 <small>

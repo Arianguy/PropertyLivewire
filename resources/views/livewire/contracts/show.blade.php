@@ -3,6 +3,11 @@
         confirmingActionMessage: '',
         confirmedActionName: null
     }">
+    @php
+        // Eager load settlement status early for button display
+        $contract->loadMissing('settlement');
+        $hasSettlement = $contract->settlement !== null;
+    @endphp
     <div>
         <div class="mx-auto max-w-7xl">
             <div class="flex items-center justify-between">
@@ -73,6 +78,13 @@
                         <flux:icon name="arrow-left" class="-ml-0.5 h-5 w-5" />
                         Back to Contracts
                     </a>
+                    {{-- Add Settle Button here for Inactive Contracts --}}
+                    @if($contract->validity === 'NO' && !$hasSettlement)
+                        <a href="{{ route('contracts.settlement.create', $contract) }}" class="inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"> {{-- Match padding --}}
+                            <flux:icon name="banknotes" class="-ml-0.5 h-5 w-5" />
+                            Settle Security Deposit
+                        </a>
+                    @endif
                 </div>
             </div>
 
@@ -147,6 +159,22 @@
                                     </span>
                                 </dd>
                             </div>
+                            {{-- Display Settlement Status Here --}}
+                            @if($hasSettlement)
+                                <div class="bg-gray-50 dark:bg-gray-900/50 px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Settlement Status</dt>
+                                    <dd class="mt-1 text-sm sm:col-span-2 sm:mt-0">
+                                        <span class="inline-flex items-center gap-x-1.5 rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/50 dark:text-green-300">
+                                            <svg class="h-3 w-3 fill-current" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+                                            </svg>
+                                            Settled on {{ $contract->settlement->created_at->format('M d, Y') }}
+                                        </span>
+                                         {{-- Optional: Link to view settlement details --}}
+                                         {{-- <a href="{{ route('contracts.settlement.create', $contract) }}" class="ml-2 text-xs text-indigo-600 hover:underline">View Details</a> --}}
+                                    </dd>
+                                </div>
+                            @endif
                             @if($contract->termination_reason)
                             <div class="bg-gray-50 dark:bg-gray-900/50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                                 <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Termination Reason</dt>
@@ -320,6 +348,10 @@
             </div>
         </div>
     </div>
+
+    @if($contract->validity === 'NO')
+        {{-- Message moved into the details DL below --}}
+    @endif
 </div>
 
 @php

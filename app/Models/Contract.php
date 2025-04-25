@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -180,5 +181,17 @@ class Contract extends Model implements HasMedia
     public function receipts(): HasMany
     {
         return $this->hasMany(Receipt::class);
+    }
+
+    // Relationship to Parent Contract (for renewals)
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Contract::class, 'previous_contract_id');
+    }
+
+    // Add the settlement relationship
+    public function settlement(): HasOne
+    {
+        return $this->hasOne(SecurityDepositSettlement::class);
     }
 }

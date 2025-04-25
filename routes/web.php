@@ -6,6 +6,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ReceiptsController;
 use App\Livewire\Payments\Index as PaymentIndex;
 use App\Livewire\Payments\PaymentForm;
+use App\Livewire\Contracts\Show as ContractShow;
+use App\Livewire\Contracts\Terminate as ContractTerminate;
+use App\Livewire\Contracts\Renew as ContractRenew;
+use App\Livewire\Settlements\SecurityDepositSettlement;
 
 Route::get('/', function () {
     return view('welcome');
@@ -188,15 +192,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/contracts/{contract}/edit', App\Livewire\Contracts\Edit::class)
         ->middleware('role_or_permission:Super Admin|edit contracts')
         ->name('contracts.edit');
-    Route::get('/contracts/{contract}', App\Livewire\Contracts\Show::class)
+    Route::get('/contracts/{contract}', ContractShow::class)
         ->middleware('role_or_permission:Super Admin|view contracts')
         ->name('contracts.show');
-    Route::get('/contracts/{contract}/renew', App\Livewire\Contracts\Renew::class)
+    Route::get('/contracts/{contract}/renew', ContractRenew::class)
         ->middleware('role_or_permission:Super Admin|edit contracts')
         ->name('contracts.renew');
-    Route::get('/contracts/{contract}/terminate', App\Livewire\Contracts\Terminate::class)
+    Route::get('/contracts/{contract}/terminate', ContractTerminate::class)
         ->middleware('role_or_permission:Super Admin|edit contracts')
         ->name('contracts.terminate');
+
+    // Security Deposit Settlement Route
+    Route::get('/contracts/{contract}/settlement', SecurityDepositSettlement::class)
+        ->name('contracts.settlement.create');
 
     // Receipts routes - Converted to Livewire
     Route::get('/receipts', App\Livewire\Receipts\Index::class)
