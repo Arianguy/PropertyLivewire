@@ -124,11 +124,11 @@
                                                 @endif
 
                                                 @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('terminate contracts'))
-                                                    @if(!$contract->renewals()->exists())
-                                                        <button type="button" wire:click="terminateContract({{ $contract->id }})" wire:confirm="Are you sure you want to terminate this contract? The property will be marked as VACANT." class="text-yellow-600 hover:text-yellow-900 dark:text-yellow-500 dark:hover:text-yellow-400" title="Terminate Contract">
+                                                    @if(!$contract->renewals()->exists() && $contract->validity === 'YES')
+                                                        <a href="{{ route('contracts.terminate', $contract) }}" class="text-yellow-600 hover:text-yellow-900 dark:text-yellow-500 dark:hover:text-yellow-400" title="Terminate Contract">
                                                             <flux:icon name="no-symbol" class="h-5 w-5" />
                                                             <span class="sr-only">Terminate</span>
-                                                        </button>
+                                                        </a>
                                                     @endif
                                                 @endif
                                             @endif

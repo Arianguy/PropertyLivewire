@@ -92,25 +92,21 @@
                         @endif
                     </td>
                     <td class="py-3 px-6 text-left">
-                        <span @class([
-                            'px-2 py-1 rounded-full text-xs font-medium',
-                            'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' => $receipt->status === 'CLEARED',
-                            'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' => $receipt->status === 'BOUNCED',
-                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' => $receipt->status === 'PENDING',
-                        ])>
-                            {{ $receipt->status }}
-                            @if($receipt->status === 'BOUNCED')
-                                @php
-                                    $totalResolved = $receipt->resolution_receipts_sum_amount ?? 0;
-                                    $isFullyResolved = $totalResolved >= $receipt->amount;
-                                @endphp
-                                @if($isFullyResolved)
-                                    <span class="text-xs"> (Resolved)</span>
-                                @else
-                                    @php $remaining = $receipt->amount - $totalResolved; @endphp
-                                    <span class="text-xs"> ({{ number_format($remaining, 2) }} Due)</span>
-                                @endif
-                            @endif
+                        @php
+                            $statusClass = match(strtoupper($receipt->status ?? '')) {
+                                'CLEARED' => 'bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-900/50 dark:text-green-400',
+                                'BOUNCED' => 'bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-900/50 dark:text-red-400',
+                                'PENDING' => 'bg-yellow-50 text-yellow-700 ring-yellow-600/20 dark:bg-yellow-900/50 dark:text-yellow-400',
+                                'CANCELLED' => 'bg-gray-100 text-gray-600 ring-gray-500/20 dark:bg-gray-700 dark:text-gray-300',
+                                default => 'bg-gray-100 text-gray-600 ring-gray-500/20 dark:bg-gray-700 dark:text-gray-300',
+                            };
+                            $statusText = $receipt->status;
+                            if ($receipt->status === 'BOUNCED' && $receipt->resolutionReceipts->isNotEmpty()) {
+                                $statusText .= ' (Resolved)';
+                            }
+                        @endphp
+                        <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset {{ $statusClass }}">
+                            {{ $statusText }}
                         </span>
 
                         @if($receipt->payment_type === 'CHEQUE' && $receipt->status === 'PENDING' && $receipt->cheque_date)

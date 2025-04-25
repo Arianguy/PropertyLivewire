@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('receipts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('contract_id')->constrained()->cascadeOnDelete();
-            $table->enum('receipt_category', ['SECURITY_DEPOSIT', 'RENT', 'RETURN_CHEQUE'])->default('RENT');
+            $table->enum('receipt_category', ['SECURITY_DEPOSIT', 'RENT', 'RETURN_CHEQUE', 'CANCELLED'])->default('RENT');
             $table->enum('payment_type', ['CASH', 'CHEQUE', 'ONLINE_TRANSFER'])->default('CASH');
             $table->decimal('amount', 10, 2);
             $table->date('receipt_date');

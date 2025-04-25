@@ -138,9 +138,12 @@ class Show extends Component
     private function generatePdfData(): string
     {
         // Ensure fresh data is loaded if needed, calculations already done in mount
+        $initiatingUserName = Auth::user() ? Auth::user()->name : 'N/A'; // Get user name for direct download
+
         $data = [
             'contract' => $this->contract->load('tenant', 'property', 'receipts'), // Ensure relations are loaded
             'totalRentScheduled' => $this->totalRentScheduled,
+            'userName' => $initiatingUserName, // Add user name for direct download
             'balanceDue' => $this->balanceDue,
             'totalRentCleared' => $this->totalRentCleared,
             'totalRentPendingClearance' => $this->totalRentPendingClearance,

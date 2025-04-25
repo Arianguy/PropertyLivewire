@@ -72,14 +72,22 @@ class ContractReportMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         $timestamp = now()->format('Y-m-d H:i:s'); // Generate timestamp for email body
+
+        // Fetch user name specifically for email body content
+        $userNameForBody = 'N/A';
+        if ($this->userId) {
+            $user = User::find($this->userId);
+            $userNameForBody = $user ? $user->name : 'User Not Found';
+        }
+
         return new Content(
-            markdown: 'emails.contracts.report', // Simple markdown email view
+            markdown: 'emails.contracts.report',
             with: [
                 'contractName' => $this->contractName,
                 'tenantName' => $this->tenantName,
                 'propertyName' => $this->propertyName,
-                'userName' => $this->fetchedUserName, // Use the fetched name
-                'timestamp' => $timestamp, // Pass timestamp
+                'userName' => $userNameForBody, // Use name fetched for body
+                'timestamp' => $timestamp,
             ],
         );
     }

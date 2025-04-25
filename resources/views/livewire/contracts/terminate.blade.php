@@ -80,6 +80,38 @@ if (!auth()->user()->hasRole('Super Admin') && !auth()->user()->can('terminate c
                     </div>
                 </div>
 
+                <!-- Pending Cheques Section -->
+                @if($pendingCheques->isNotEmpty())
+                    <div class="mt-6 border-t border-gray-200 dark:border-gray-700 pt-6">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3">Cancel Pending Cheques</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                            Select any pending cheques associated with this contract that should be marked as CANCELLED upon termination.
+                        </p>
+                        <fieldset>
+                            <legend class="sr-only">Pending Cheques</legend>
+                            <div class="space-y-3">
+                                @foreach($pendingCheques as $cheque)
+                                    <div class="relative flex items-start">
+                                        <div class="flex h-6 items-center">
+                                            <input id="cheque_{{ $cheque->id }}"
+                                                   wire:model.live="chequesToCancel"
+                                                   value="{{ $cheque->id }}"
+                                                   type="checkbox"
+                                                   class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600 dark:bg-gray-700 dark:border-gray-600 dark:checked:bg-primary-600 dark:focus:ring-offset-gray-800">
+                                        </div>
+                                        <div class="ml-3 text-sm leading-6">
+                                            <label for="cheque_{{ $cheque->id }}" class="font-medium text-gray-900 dark:text-gray-100">
+                                                Cheque #{{ $cheque->cheque_no }} - ${{ number_format($cheque->amount, 2) }}
+                                            </label>
+                                            <p class="text-gray-500 dark:text-gray-400">Due: {{ $cheque->cheque_date ? \Carbon\Carbon::parse($cheque->cheque_date)->format('M d, Y') : 'N/A' }}</p>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </fieldset>
+                    </div>
+                @endif
+
                 <div class="mt-6 flex justify-end space-x-3">
                     <a href="{{ route('contracts.show', $contract) }}" class="inline-flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700 dark:hover:bg-gray-700">
                         Cancel

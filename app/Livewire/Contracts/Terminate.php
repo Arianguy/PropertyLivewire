@@ -3,6 +3,7 @@
 namespace App\Livewire\Contracts;
 
 use App\Models\Contract;
+use App\Models\Receipt;
 use Livewire\Component;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,10 @@ class Terminate extends Component
     public $close_date;
     public $amount;
     public $reason;
+
+    // Properties for cheque cancellation
+    public $pendingCheques = [];
+    public $chequesToCancel = [];
 
     protected function rules()
     {
@@ -28,13 +33,20 @@ class Terminate extends Component
     {
         // Check if user has permission to terminate contracts
         if (!Auth::user()->hasRole('Super Admin') && !Auth::user()->can('terminate contracts')) {
-            return redirect()->route('contracts.show', $contract)
-                ->with('error', 'You do not have permission to terminate contracts.');
+            session()->flash('error', 'You do not have permission to terminate contracts.');
+            return redirect()->route('contracts.show', $contract);
         }
 
         $this->contract = $contract;
         $this->close_date = now()->format('Y-m-d');
         $this->amount = $contract->amount;
+
+        // Fetch pending cheques for this contract
+        $this->pendingCheques = Receipt::where('contract_id', $this->contract->id)
+            ->where('status', 'PENDING')
+            ->where('payment_type', 'CHEQUE') // Only show cheques
+            ->orderBy('cheque_date')
+            ->get();
     }
 
     public function terminate()
@@ -61,6 +73,17 @@ class Terminate extends Component
                 'type' => 'terminated',
                 'termination_reason' => $this->reason
             ]);
+
+            // Cancel selected pending cheques
+            if (!empty($this->chequesToCancel)) {
+                Receipt::whereIn('id', $this->chequesToCancel)
+                    ->where('contract_id', $this->contract->id) // Ensure they belong to this contract
+                    ->where('status', 'PENDING')          // Double-check status
+                    ->update([
+                        'status' => 'CANCELLED',
+                        'receipt_category' => 'CANCELLED' // Also update category
+                    ]);
+            }
 
             // Update the property's status to 'VACANT'
             $this->contract->property->update(['status' => 'VACANT']);

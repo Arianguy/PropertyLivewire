@@ -147,6 +147,14 @@
             font-weight: bold;
             font-size: 9px;
         }
+        .status-cancelled {
+            color: #383d41; /* Dark gray */
+            background-color: #e2e3e5; /* Light gray */
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 9px;
+        }
         .status-other {
             /* Default style for any other status */
         }
@@ -223,6 +231,7 @@
                                 'CLEARED' => 'status-cleared',
                                 'BOUNCED' => 'status-bounced',
                                 'PENDING' => 'status-pending',
+                                'CANCELLED' => 'status-cancelled',
                                 default => 'status-other',
                             };
                         @endphp
