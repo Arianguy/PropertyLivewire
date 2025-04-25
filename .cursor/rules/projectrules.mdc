@@ -94,3 +94,4 @@ Essential Guidelines and Best Practices
 - Implement complex UI patterns using Livewire and Alpine.js.
 
 Dont use Currency Symbols for Amounts.
+All Prints , PDFs and emails should have in the footer the User name

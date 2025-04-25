@@ -10,6 +10,7 @@ use App\Livewire\Contracts\Show as ContractShow;
 use App\Livewire\Contracts\Terminate as ContractTerminate;
 use App\Livewire\Contracts\Renew as ContractRenew;
 use App\Livewire\Settlements\SecurityDepositSettlement;
+use App\Livewire\Reports\SecurityDepositReport;
 
 Route::get('/', function () {
     return view('welcome');
@@ -234,6 +235,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // These routes are now handled by Livewire component methods
     // Route::put('/receipts/{receipt}', [ReceiptsController::class, 'update'])->name('receipts.update');
     // Route::delete('/receipts/{receipt}', [ReceiptsController::class, 'destroy'])->name('receipts.destroy');
+
+    // Reports
+    Route::get('/reports/security-deposits', SecurityDepositReport::class)
+        ->middleware(['verified', 'role_or_permission:Super Admin|view reports'])
+        ->name('reports.security-deposits');
 });
 
 // Media secure routes

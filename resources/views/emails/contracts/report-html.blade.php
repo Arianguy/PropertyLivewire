@@ -111,7 +111,7 @@
                                         'BOUNCED' => 'status-bounced',
                                         'PENDING' => 'status-pending',
                                         'CANCELLED' => 'status-cancelled',
-                                        default => '',
+                                        default => 'status-cancelled',
                                     };
                                 @endphp
                                 <span class="{{ $statusClass }}">{{ $receipt->status }}</span>

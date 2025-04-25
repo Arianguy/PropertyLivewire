@@ -115,10 +115,10 @@
                         </flux:navmenu.item>
 
 
-                        <flux:navmenu.item :href="route('cheque-management')" :current="request()->routeIs('cheque-management')" wire:navigate>
+                        <flux:navmenu.item :href="route('reports.security-deposits')" :current="request()->routeIs('reports.security-deposits')" wire:navigate>
                             <div class="flex items-center gap-2">
                                 <flux:icon name="banknotes" class="h-5 w-5" />
-                                <span>Contract Reports</span>
+                                <span>Security Deposit Reports</span>
                             </div>
                         </flux:navmenu.item>
 
