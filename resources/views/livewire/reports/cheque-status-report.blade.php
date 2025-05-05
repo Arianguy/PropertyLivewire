@@ -103,14 +103,40 @@
                                         @endif
                                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400 text-right">{{ number_format($receipt->amount, 2) }}</td>
                                         <td class="whitespace-nowrap px-3 py-4 text-sm">
+                                            {{-- Calculate diffInDays first to use in @class --}}
+                                            @php
+                                                $diffInDays = null;
+                                                if ($receipt->status === 'PENDING' && $receipt->cheque_date) {
+                                                    $chequeDate = \Carbon\Carbon::parse($receipt->cheque_date)->startOfDay();
+                                                    $today = \Carbon\Carbon::now()->startOfDay();
+                                                    $diffInDays = $today->diffInDays($chequeDate, false); // Negative if past, positive if future
+                                                }
+                                            @endphp
                                             <span @class([
                                                 'inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset',
+                                                // Existing Statuses
                                                 'bg-green-50 text-green-700 ring-green-600/20' => $receipt->status === 'CLEARED',
-                                                'bg-yellow-50 text-yellow-800 ring-yellow-600/20' => $receipt->status === 'PENDING',
                                                 'bg-red-50 text-red-700 ring-red-600/20' => $receipt->status === 'BOUNCED',
+                                                // Pending Statuses based on date diff
+                                                'bg-red-50 text-red-700 ring-red-600/20' => $receipt->status === 'PENDING' && $diffInDays !== null && $diffInDays < 0, // Late
+                                                'bg-yellow-50 text-yellow-800 ring-yellow-600/20' => $receipt->status === 'PENDING' && $diffInDays !== null && $diffInDays === 0, // Due Today
+                                                'bg-green-50 text-green-700 ring-green-600/20' => $receipt->status === 'PENDING' && $diffInDays !== null && $diffInDays > 0, // Future
+                                                // Fallback for Pending if date is missing or other statuses
+                                                'bg-gray-50 text-gray-600 ring-gray-500/10' => $receipt->status === 'PENDING' && $diffInDays === null,
                                                 'bg-gray-50 text-gray-600 ring-gray-500/10' => !in_array($receipt->status, ['CLEARED', 'PENDING', 'BOUNCED']),
                                             ])>
-                                                {{ ucfirst(strtolower($receipt->status)) }}
+                                                @if ($receipt->status === 'PENDING' && $diffInDays !== null)
+                                                    @if ($diffInDays > 0)
+                                                        Due in {{ $diffInDays }} {{ Str::plural('day', $diffInDays) }}
+                                                    @elseif ($diffInDays === 0)
+                                                        Due Today
+                                                    @else
+                                                        Late by {{ abs($diffInDays) }} {{ Str::plural('day', abs($diffInDays)) }}
+                                                    @endif
+                                                @else
+                                                    {{-- Fallback or other statuses --}}
+                                                    {{ ucfirst(strtolower($receipt->status)) }}
+                                                @endif
                                             </span>
                                         </td>
                                         <td class="whitespace-nowrap px-3 py-4 text-sm text-center">
