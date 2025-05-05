@@ -15,15 +15,27 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ChequeStatusReportMail; // Use new Mailable
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\On; // Add this import
 
 class ChequeStatusReport extends Component
 {
     // use WithPagination;
 
-    public $filter = 'cleared'; // 'cleared' or 'upcoming'
+    public $filter = 'upcoming'; // Default to upcoming
     public $search = '';
     public $startDate = null;
     public $endDate = null;
+
+    // Filter type: 'upcoming' or 'cleared'
+    public string $filterType = 'upcoming'; // Default to Upcoming Cheques
+
+    public ?string $imageUrlToShow = null; // Add this property
+
+    protected $rules = [
+        'startDate' => 'nullable|date',
+        'endDate' => 'nullable|date|after_or_equal:startDate',
+    ];
 
     // Reset pagination hooks (uncomment if using pagination)
     public function updatingSearch()
@@ -208,5 +220,34 @@ class ChequeStatusReport extends Component
         }
 
         Log::debug('ChequeStatusReport: emailReport method finished.');
+    }
+
+    #[On('openImageModal')] // Listen for the event from the modal if needed for direct communication
+    public function handleModalOpen()
+    {
+        // Optional: Add logic if the parent needs to react to the modal opening
+    }
+
+    /**
+     * Set the image URL and dispatch event to open the modal.
+     */
+    public function viewChequeImage(int $receiptId): void
+    {
+        $receipt = Receipt::find($receiptId);
+        if ($receipt && $receipt->hasMedia('cheque_images')) {
+            $this->imageUrlToShow = $receipt->getFirstMediaUrl('cheque_images');
+            Log::debug('Generated Cheque Image URL: ' . $this->imageUrlToShow);
+            $this->dispatch('showImageModal', imageUrl: $this->imageUrlToShow);
+        } else {
+            $this->imageUrlToShow = null;
+            Log::warning('Cheque image not found for receipt ID: ' . $receiptId);
+            session()->flash('error', 'Cheque image not found.');
+        }
+    }
+
+    #[On('imageModalClosed')] // Listen for the event when the modal closes
+    public function clearImageUrl(): void
+    {
+        $this->imageUrlToShow = null;
     }
 }
