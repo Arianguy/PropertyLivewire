@@ -1,7 +1,7 @@
 <div class="w-full">
     {{-- Header --}}
     <div class="flex items-center justify-between">
-        <div>
+<div>
             <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">Security Deposit Report</h2>
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 View settled and unsettled security deposit details.
@@ -26,7 +26,7 @@
                 @class([
                     'relative inline-flex items-center px-3 py-2 text-sm font-semibold focus:z-10', // Base styles
                     'rounded-l-md',
-                    'bg-primary-600 text-white hover:bg-primary-700' => $currentFilter === 'settled', // Active styles
+                    'bg-green-100 text-gray-900 hover:bg-green-200' => $currentFilter === 'settled', // Active styles
                     'bg-white text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700 dark:hover:bg-gray-700' => $currentFilter !== 'settled', // Inactive styles
                 ])
             >
@@ -38,7 +38,7 @@
                 @class([
                     'relative -ml-px inline-flex items-center px-3 py-2 text-sm font-semibold focus:z-10', // Base styles
                     'rounded-r-md',
-                    'bg-primary-600 text-white hover:bg-primary-700' => $currentFilter === 'unsettled', // Active styles
+                    'bg-green-100 text-gray-900 hover:bg-green-200' => $currentFilter === 'unsettled', // Active styles
                     'bg-white text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700 dark:hover:bg-gray-700' => $currentFilter !== 'unsettled', // Inactive styles
                 ])
             >

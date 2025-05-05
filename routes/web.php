@@ -240,6 +240,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/reports/security-deposits', SecurityDepositReport::class)
         ->middleware(['verified', 'role_or_permission:Super Admin|view reports'])
         ->name('reports.security-deposits');
+    Route::get('/reports/cheque-status', \App\Livewire\Reports\ChequeStatusReport::class)
+        ->middleware(['verified', 'role_or_permission:Super Admin|view reports'])
+        ->name('reports.cheque-status');
 });
 
 // Media secure routes
