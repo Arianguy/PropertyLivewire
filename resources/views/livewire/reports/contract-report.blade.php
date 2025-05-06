@@ -89,6 +89,7 @@
                                         @foreach ($columns as $column)
                                             <th scope="col" class="{{ $loop->first ? 'py-3.5 pl-4 pr-3 text-left' : 'px-3 py-3.5' }} {{ str_contains(strtolower($column), 'amount') ? 'text-right' : 'text-left' }} text-sm font-semibold text-gray-900 dark:text-gray-100 sm:pl-6">{{ $column }}</th>
                                         @endforeach
+                                        <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-center text-sm font-semibold text-gray-900 dark:text-gray-100">View</th>
                                     @else
                                          {{-- Fallback if columns are not set --}}
                                          <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 sm:pl-6">Data</th>
@@ -147,10 +148,38 @@
                                                     N/A
                                                 @endif
                                             </td>
+                                            {{-- View Action Cell --}}
+                                            <td class="whitespace-nowrap py-4 pl-3 pr-4 text-center text-sm font-medium sm:pr-6">
+                                                @php
+                                                    // Attempt to get download URL. Use getFirstMediaUrl as a fallback if needed.
+                                                    // Ensure the Contract model has getContractCopyDownloadUrl() or adjust.
+                                                    $downloadUrl = method_exists($contract, 'getContractCopyDownloadUrl')
+                                                                    ? $contract->getContractCopyDownloadUrl()
+                                                                    : ($contract->hasMedia('contracts_copy') ? $contract->getFirstMediaUrl('contracts_copy') : null);
+                                                @endphp
+                                                @if($downloadUrl)
+                                                    <a href="{{ $downloadUrl }}"
+                                                       target="_blank" {{-- Open in new tab, browser might force download --}}
+                                                       {{-- download --}} {{-- Uncomment the download attribute to suggest download --}}
+                                                       class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                                       title="Download Contract PDF">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 inline-block">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                                        </svg>
+                                                        {{-- Use a download icon instead if preferred --}}
+                                                        {{-- <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 inline-block">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                                        </svg> --}}
+                                                    </a>
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="{{ !empty($columns) ? count($columns) : 1 }}" class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-gray-100 sm:pl-6 text-center">
+                                            <td colspan="{{ !empty($columns) ? count($columns) + 1 : 1 }}" class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-gray-100 sm:pl-6 text-center">
                                                 No {{ strtolower($currentFilter) }} contracts found matching criteria.
                                             </td>
                                         </tr>
@@ -168,7 +197,7 @@
                                     <tr class="font-bold text-base">
                                         <td colspan="6" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 sm:pl-6">Grand Totals ({{ $grandTotals['contracts'] }} Contracts):</td>
                                         <td class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 dark:text-gray-100">{{ number_format($grandTotals['amount'] ?? 0, 2) }}</td>
-                                        <td colspan="{{ $currentFilter === 'ongoing' ? 2 : 1 }}"></td>
+                                        <td colspan="{{ $currentFilter === 'ongoing' ? 3 : 2 }}"></td>
                                     </tr>
                                 </tfoot>
                             @endif
@@ -183,4 +212,7 @@
             {{ $reportData->links() }}
         </div> --}}
     </div>
+
+    {{-- Modal for viewing PDF (Removed) --}}
+
 </div>

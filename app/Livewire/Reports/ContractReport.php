@@ -205,4 +205,6 @@ class ContractReport extends Component
 
         Log::debug('ContractReport: emailReport method finished.');
     }
+
+    // Removed viewContractPdf method and related listeners as modal is removed
 }
