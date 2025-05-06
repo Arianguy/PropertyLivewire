@@ -243,6 +243,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/reports/cheque-status', \App\Livewire\Reports\ChequeStatusReport::class)
         ->middleware(['verified', 'role_or_permission:Super Admin|view reports'])
         ->name('reports.cheque-status');
+
+    // Contracts Report
+    Route::get('/reports/contracts', \App\Livewire\Reports\ContractReport::class)
+        ->middleware(['verified', 'role_or_permission:Super Admin|view reports'])
+        ->name('reports.contracts');
 });
 
 // Media secure routes

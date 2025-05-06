@@ -129,7 +129,12 @@
                             </div>
                         </flux:navmenu.item>
 
-
+                        <flux:navmenu.item :href="route('reports.contracts')" :current="request()->routeIs('reports.contracts')" wire:navigate>
+                            <div class="flex items-center gap-2">
+                                <flux:icon name="document-text" class="h-5 w-5" />
+                                <span>Contracts Report</span>
+                            </div>
+                        </flux:navmenu.item>
 
                         <flux:navmenu.item :href="route('payments.index')" :current="request()->routeIs('payments.*')" wire:navigate>
                             <div class="flex items-center gap-2">

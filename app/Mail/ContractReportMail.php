@@ -2,59 +2,42 @@
 
 namespace App\Mail;
 
-use App\Models\Contract;
-use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Queue\SerializesModels;
+use App\Models\Contract;
+use App\Models\Property;
+use App\Models\Tenant;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
-use App\Models\SecurityDepositSettlement as Settlement;
+use Illuminate\Support\Facades\Auth; // Keep Auth facade if needed for user info inside Job
 
 class ContractReportMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    // Store identifiers and necessary calculated data
-    public int $contractId;
-    public ?int $userId;
-    public string $contractName;
-    public string $tenantName;
-    public string $propertyName;
-    public float $totalRentScheduled;
-    public float $balanceDue;
-    public float $totalRentCleared;
-    public float $totalRentPendingClearance;
-    // Store fetched username for consistency
-    private string $fetchedUserName = 'N/A';
+    public string $reportType; // 'ongoing' or 'closed'
+    public ?string $startDate;
+    public ?string $endDate;
+    public string $search;
+    public ?int $userId; // ID of the user who requested the report
 
     /**
      * Create a new message instance.
      */
-    public function __construct(
-        int $contractId,
-        string $contractName,
-        string $tenantName,
-        string $propertyName,
-        ?int $userId,
-        float $totalRentScheduled,
-        float $balanceDue,
-        float $totalRentCleared,
-        float $totalRentPendingClearance
-    ) {
-        $this->contractId = $contractId;
-        $this->contractName = $contractName;
+    public function __construct(string $reportType, ?string $startDate, ?string $endDate, string $search, ?int $userId)
+    {
+        $this->reportType = $reportType;
+        $this->startDate = $startDate;
+        $this->endDate = $endDate;
+        $this->search = $search;
         $this->userId = $userId;
-        $this->tenantName = $tenantName;
-        $this->propertyName = $propertyName;
-        $this->totalRentScheduled = $totalRentScheduled;
-        $this->balanceDue = $balanceDue;
-        $this->totalRentCleared = $totalRentCleared;
-        $this->totalRentPendingClearance = $totalRentPendingClearance;
     }
 
     /**
@@ -63,7 +46,7 @@ class ContractReportMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Contract Report - ' . $this->contractName,
+            subject: 'Contracts Report - ' . ucfirst($this->reportType),
         );
     }
 
@@ -72,44 +55,13 @@ class ContractReportMail extends Mailable implements ShouldQueue
      */
     public function content(): Content
     {
-        $timestamp = now()->format('Y-m-d H:i:s');
-
-        // Fetch required data within the job for the email body
-        $contract = Contract::with('receipts', 'settlement')->find($this->contractId);
-        if (!$contract) {
-            Log::error("Could not find Contract {$this->contractId} inside ContractReportMail content generation.");
-            // Return empty content or fallback view?
-            // For now, we'll proceed but data might be missing in the view.
-            $contract = new Contract(); // Avoid errors in view, but data will be wrong
-        }
-        $settlement = $contract->settlement; // Get settlement from loaded relationship
-
-        // Fetch user name specifically for email body content
-        $userNameForBody = 'N/A';
-        if ($this->userId) {
-            $user = User::find($this->userId);
-            $userNameForBody = $user ? $user->name : 'User Not Found';
-        }
-
+        // Simple view for the email body
         return new Content(
-            view: 'emails.contracts.report-html', // Use HTML view
+            view: 'emails.reports.contract-status', // We will create this view next
             with: [
-                'contractName' => $this->contractName,
-                'tenantName' => $this->tenantName,
-                'propertyName' => $this->propertyName,
-                'userName' => $userNameForBody, // Use name fetched for body
-                'timestamp' => $timestamp,
-                // Pass full objects/collections needed by the HTML view
-                'contractType' => $contract->type ?? null,
-                'contractStatus' => $contract->validity === 'YES' ? 'Active' : 'Inactive',
-                'terminationReason' => $contract->termination_reason ?? null,
-                'settlement' => $settlement, // Pass the settlement object (or null)
-                'receipts' => $contract->receipts ?? collect(), // Pass receipts collection
-                // Pass calculated totals as well
-                'totalRentScheduled' => $this->totalRentScheduled,
-                'balanceDue' => $this->balanceDue,
-                'totalRentCleared' => $this->totalRentCleared,
-                'totalRentPendingClearance' => $this->totalRentPendingClearance,
+                'reportType' => $this->reportType,
+                'startDate' => $this->startDate,
+                'endDate' => $this->endDate,
             ],
         );
     }
@@ -121,69 +73,108 @@ class ContractReportMail extends Mailable implements ShouldQueue
      */
     public function attachments(): array
     {
-        Log::debug("Generating PDF attachment inside Mailable for Contract ID: {$this->contractId}");
+        Log::debug('ContractReportMail: Generating PDF attachment inside Mailable.', [
+            'type' => $this->reportType,
+            'search' => $this->search,
+            'startDate' => $this->startDate,
+            'endDate' => $this->endDate,
+            'userId' => $this->userId
+        ]);
 
         try {
-            // Fetch the contract with necessary relations AND settlement inside the job
-            $contract = Contract::with('tenant', 'property', 'receipts', 'settlement')->find($this->contractId);
-
-            if (!$contract) {
-                Log::error("Could not find Contract {$this->contractId} inside ContractReportMail job.");
-                return []; // Return empty if contract not found
-            }
-
-            // Fetch the user name based on stored ID
+            // --- Replicate data fetching logic from ContractReport --- START ---
+            $reportData = collect();
+            $grandTotals = [];
+            $columns = [];
+            $searchTerm = '%' . $this->search . '%';
+            $now = now();
+            $userName = 'System'; // Default
             if ($this->userId) {
-                Log::debug("Fetching user name for User ID: {$this->userId} inside job.");
                 $user = User::find($this->userId);
-                if ($user && $user->name) {
-                    $this->fetchedUserName = $user->name;
-                    Log::debug("User found: {$this->fetchedUserName}");
-                } else {
-                    $this->fetchedUserName = 'User Not Found';
-                    Log::warning("User or user name not found for ID: {$this->userId}");
-                }
-            } else {
-                $this->fetchedUserName = 'N/A (No User ID provided)';
-                Log::warning("No User ID provided to ContractReportMail job.");
+                $userName = $user ? $user->name : 'User ID: ' . $this->userId;
             }
 
-            // Prepare data for the PDF view
-            $data = [
-                'contract' => $contract,
-                'userName' => $this->fetchedUserName, // Pass fetched user name
-                'totalRentScheduled' => $this->totalRentScheduled,
-                'balanceDue' => $this->balanceDue,
-                'totalRentCleared' => $this->totalRentCleared,
-                'totalRentPendingClearance' => $this->totalRentPendingClearance,
-                // Pass the settlement object itself (or null)
-                'settlement' => $contract->settlement,
+            $baseQuery = Contract::with(['property', 'tenant'])
+                ->join('properties', 'contracts.property_id', '=', 'properties.id')
+                ->join('tenants', 'contracts.tenant_id', '=', 'tenants.id')
+                ->select(
+                    'contracts.*',
+                    'properties.name as property_name',
+                    'tenants.name as tenant_name'
+                )
+                ->where(function ($q) use ($searchTerm) {
+                    $q->where('properties.name', 'like', $searchTerm)
+                        ->orWhere('tenants.name', 'like', $searchTerm)
+                        ->orWhere('contracts.name', 'like', $searchTerm);
+                });
+
+            $columns = ['#', 'Property', 'Tenant', 'Contract #', 'Start Date', 'End Date', 'Amount', 'Status'];
+            $query = null; // Initialize query
+
+            if ($this->reportType === 'ongoing') {
+                $query = $baseQuery->where('contracts.cend', '>=', $now->toDateString());
+                $columns[] = 'Remaining Days';
+            } elseif ($this->reportType === 'closed') {
+                $query = $baseQuery->where('contracts.cend', '<', $now->toDateString());
+                $columns[] = 'Closed On';
+            }
+
+            if (!$query) { // Handle case where filter type might be invalid
+                Log::warning('ContractReportMail: Invalid report type encountered.', ['type' => $this->reportType]);
+                return [];
+            }
+
+            if ($this->startDate) {
+                $query->whereDate('contracts.cstart', '>=', $this->startDate);
+            }
+            if ($this->endDate) {
+                $query->whereDate('contracts.cstart', '<=', $this->endDate);
+            }
+
+            $reportDataCollection = $query->orderBy('contracts.cend', $this->reportType === 'ongoing' ? 'asc' : 'desc')
+                ->get();
+
+            $reportData = $reportDataCollection;
+            $grandTotals = [
+                'contracts' => $reportDataCollection->count(),
+                'amount' => $reportDataCollection->sum('amount'),
+            ];
+            // --- Replicate data fetching logic --- END ---
+
+            if ($reportData->isEmpty()) {
+                Log::warning('ContractReportMail: No data found for PDF attachment, skipping.');
+                return []; // Don't attach anything if no data
+            }
+
+            $pdfViewData = [
+                'reportData' => $reportData,
+                'grandTotals' => $grandTotals,
+                'columns' => $columns,
+                'currentFilter' => $this->reportType,
+                'startDate' => $this->startDate,
+                'endDate' => $this->endDate,
+                'generatedAt' => $now,
+                'generatedBy' => $userName, // Use the fetched user name
             ];
 
-            // Debugging: Check the settlement data before passing to view
-            Log::debug("Data being passed to PDF view in ContractReportMail:", [
-                'contract_id' => $this->contractId,
-                'settlement_type' => gettype($contract->settlement),
-                'settlement_is_null' => is_null($contract->settlement),
-                'settlement_data' => $contract->settlement ? $contract->settlement->toArray() : null // Log data if not null
-            ]);
+            $pdf = Pdf::loadView('pdfs.reports.contract-status', $pdfViewData);
+            $pdf->setPaper('a4', 'landscape');
+            $pdfDataOutput = $pdf->output();
 
-            $pdf = Pdf::loadView('reports.contract-details', $data);
-            $pdfData = $pdf->output();
-            // Use fetched contract name for filename, just in case property was weird
-            $pdfFilename = 'contract-report-' . $contract->name . '.pdf';
-            // Sanitize filename
-            $safeFilename = preg_replace('/[^A-Za-z0-9\-\_\.]/', '_', $pdfFilename);
+            $filename = 'contract-report-' . $this->reportType . '-' . now()->format('Y-m-d') . '.pdf';
 
-            Log::debug("PDF generated successfully for Contract ID: {$this->contractId}, filename: {$safeFilename}");
+            Log::info('ContractReportMail: PDF generated successfully for attachment.', ['filename' => $filename]);
 
             return [
-                Attachment::fromData(fn() => $pdfData, $safeFilename)
+                Attachment::fromData(fn() => $pdfDataOutput, $filename)
                     ->withMime('application/pdf'),
             ];
         } catch (\Exception $e) {
-            Log::error("Error generating PDF attachment in ContractReportMail for Contract ID: {$this->contractId}. Error: " . $e->getMessage());
-            return []; // Return empty array on error
+            Log::error("ContractReportMail: Failed to generate PDF attachment: " . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString() // Log trace for detailed debugging
+            ]);
+            return []; // Return empty array if PDF generation fails
         }
     }
 }
