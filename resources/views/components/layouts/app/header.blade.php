@@ -139,6 +139,13 @@
                         <flux:navmenu.item :href="route('payments.index')" :current="request()->routeIs('payments.*')" wire:navigate>
                             <div class="flex items-center gap-2">
                                 <flux:icon name="credit-card" class="h-5 w-5" />
+                                <span>Tenant Ledger</span>
+                            </div>
+                        </flux:navmenu.item>
+
+                        <flux:navmenu.item :href="route('payments.index')" :current="request()->routeIs('payments.*')" wire:navigate>
+                            <div class="flex items-center gap-2">
+                                <flux:icon name="credit-card" class="h-5 w-5" />
                                 <span>Financial Reports</span>
                             </div>
                         </flux:navmenu.item>
