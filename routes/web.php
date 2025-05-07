@@ -11,6 +11,7 @@ use App\Livewire\Contracts\Terminate as ContractTerminate;
 use App\Livewire\Contracts\Renew as ContractRenew;
 use App\Livewire\Settlements\SecurityDepositSettlement;
 use App\Livewire\Reports\SecurityDepositReport;
+use App\Livewire\Reports\TenantLedgerReport;
 
 Route::get('/', function () {
     return view('welcome');
@@ -248,6 +249,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/reports/contracts', \App\Livewire\Reports\ContractReport::class)
         ->middleware(['verified', 'role_or_permission:Super Admin|view reports'])
         ->name('reports.contracts');
+
+    Route::get('/reports/tenant-ledger', TenantLedgerReport::class)
+        ->middleware(['verified', 'role_or_permission:Super Admin|view reports'])
+        ->name('reports.tenant-ledger');
 });
 
 // Media secure routes
