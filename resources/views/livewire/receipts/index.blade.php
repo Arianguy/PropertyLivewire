@@ -1,7 +1,7 @@
 <div class="w-full">
     {{-- Header Section --}}
     <div class="flex items-center justify-between">
-        <div>
+<div>
             <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">Receipts Management</h2>
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Select a contract to manage its receipts.
@@ -47,10 +47,10 @@
                                     <span class="sr-only">Actions</span>
                                     Actions
                                 </th>
-                            </tr>
-                        </thead>
+                                </tr>
+                            </thead>
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
-                            @forelse($contracts as $contract)
+                                @forelse($contracts as $contract)
                             <tr>
                                 <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-gray-100 sm:pl-6">{{ $contract->name }}</td>
                                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">{{ $contract->tenant->name }}</td>
@@ -67,14 +67,14 @@
                                             Inactive
                                         </span>
                                     @endif
-                                </td>
+                                    </td>
                                 <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-center text-sm font-medium sm:pr-6">
                                     <div class="flex justify-center space-x-2">
                                         <a href="{{ route('receipts.create', $contract->id) }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-500 dark:hover:text-primary-400" title="Create Receipt">
                                             <flux:icon name="document-plus" class="h-5 w-5" />
                                             <span class="sr-only">Create Receipt</span>
                                         </a>
-                                        <a href="{{ route('receipts.list-by-contract', $contract->id) }}" class="text-green-600 hover:text-green-900 dark:text-green-500 dark:hover:text-green-400" title="View Receipts">
+                                        <a href="{{ route('receipts.view-all-for-contract', $contract->id) }}" class="text-green-600 hover:text-green-900 dark:text-green-500 dark:hover:text-green-400" title="View Receipts">
                                             <flux:icon name="eye" class="h-5 w-5" />
                                             <span class="sr-only">View Receipts</span>
                                         </a>
@@ -83,15 +83,15 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="7" class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-gray-100 sm:pl-6 text-center">
-                                    No active contracts found to manage receipts.
-                                    {{-- Optional: Add a link to create contracts if desired --}}
-                                    {{-- @if(auth()->user()->can('create contracts'))
-                                        <a href="{{ route('contracts.create') }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-500 dark:hover:text-primary-400">
-                                            Create a contract first
-                                        </a>
-                                    @endif --}}
-                                </td>
+                            <td colspan="7" class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-gray-100 sm:pl-6 text-center">
+                                No active contracts found to manage receipts.
+                                {{-- Optional: Add a link to create contracts if desired --}}
+                                {{-- @if(auth()->user()->can('create contracts'))
+                                    <a href="{{ route('contracts.create') }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-500 dark:hover:text-primary-400">
+                                        Create a contract first
+                                    </a>
+                                @endif --}}
+                            </td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -122,7 +122,7 @@
                             <a href="{{ route('receipts.create', $contract->id) }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-500 dark:hover:text-primary-400" title="Create Receipt">
                                 <flux:icon name="document-plus" class="h-5 w-5" />
                             </a>
-                            <a href="{{ route('receipts.list-by-contract', $contract->id) }}" class="text-green-600 hover:text-green-900 dark:text-green-500 dark:hover:text-green-400" title="View Receipts">
+                            <a href="{{ route('receipts.view-all-for-contract', $contract->id) }}" class="text-green-600 hover:text-green-900 dark:text-green-500 dark:hover:text-green-400" title="View Receipts">
                                 <flux:icon name="eye" class="h-5 w-5" />
                             </a>
                         </div>

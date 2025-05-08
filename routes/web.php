@@ -221,6 +221,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('role_or_permission:Super Admin|view receipts')
         ->name('receipts.list-by-contract');
 
+    // New route for the duplicated page
+    Route::get('/receipts/view-all-for-contract/{contract}', App\Livewire\Receipts\ShowAllForContract::class)
+        ->middleware('role_or_permission:Super Admin|view receipts') // Assuming same permissions
+        ->name('receipts.view-all-for-contract');
+
     Route::get('/receipts/{receipt}/edit', App\Livewire\Receipts\Edit::class)
         ->middleware('role_or_permission:Super Admin|edit receipts')
         ->name('receipts.edit');
