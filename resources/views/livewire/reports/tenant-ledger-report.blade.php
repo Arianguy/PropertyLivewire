@@ -168,7 +168,7 @@
                                                             <button
                                                                type="button"
                                                                wire:click="openAttachmentModal('{{ $receipt->getAttachmentUrl() }}')"
-                                                               class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:bg-primary-500 dark:hover:bg-primary-600"
+                                                               class="inline-flex items-center px-2.5 py-1.5 border border-primary-500 dark:border-primary-400 text-xs font-medium rounded shadow-sm text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                                                                title="View Attachment">
                                                                 View
                                                             </button>
