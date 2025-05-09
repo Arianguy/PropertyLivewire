@@ -16,33 +16,62 @@
     </div>
 
     {{-- Filters --}}
-    <div class="mt-4 flex flex-col md:flex-row md:items-center md:justify-start space-y-3 md:space-y-0 md:space-x-3">
-        {{-- Search --}}
-        <div class="md:w-64 relative rounded-md shadow-sm">
-            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <flux:icon name="magnifying-glass" class="h-4 w-4 text-gray-400" />
+    <div class="mt-4 flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0 md:space-x-3">
+        {{-- Left Aligned Filters Group --}}
+        <div class="flex flex-col md:flex-row md:items-center space-y-3 md:space-y-0 md:space-x-3">
+            {{-- Search --}}
+            <div class="md:w-64 relative rounded-md shadow-sm">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <flux:icon name="magnifying-glass" class="h-4 w-4 text-gray-400" />
+                </div>
+                <input type="text" wire:model.live.debounce.500ms="search" class="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700" placeholder="Search Amount, Desc, Property...">
             </div>
-            <input type="text" wire:model.live.debounce.500ms="search" class="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700" placeholder="Search Amount, Desc, Property...">
+
+            {{-- Property Filter --}}
+            <div class="w-full md:w-48">
+                <select wire:model.live="propertyId" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700">
+                    <option value="">All Properties</option>
+                    @foreach($this->properties as $id => $name)
+                        <option value="{{ $id }}">{{ $name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Payment Type Filter --}}
+            <div class="w-full md:w-48">
+                <select wire:model.live="paymentTypeId" class="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700">
+                    <option value="">All Types</option>
+                    @foreach($this->paymentTypes as $id => $name)
+                        <option value="{{ $id }}">{{ $name }}</option>
+                    @endforeach
+                </select>
+            </div>
         </div>
 
-        {{-- Property Filter --}}
-        <div class="w-full md:w-48">
-            <select wire:model.live="propertyId" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700">
-                <option value="">All Properties</option>
-                @foreach($this->properties as $id => $name)
-                    <option value="{{ $id }}">{{ $name }}</option>
-                @endforeach
-            </select>
-        </div>
+        {{-- Right Aligned Date Filters & Action Buttons Container --}}
+        <div class="flex items-center space-x-2 justify-end">
+            {{-- Date Range Filter for Paid At --}}
+            <div class="flex items-center space-x-2">
+                <label for="startDate" class="text-sm font-medium text-gray-700 dark:text-gray-300">Paid:</label>
+                <input type="date" wire:model.live="startDate" id="startDate" class="block w-auto rounded-md border-0 py-1.5 px-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700 dark:[color-scheme:dark]">
+                <span class="text-gray-500 dark:text-gray-400">to</span>
+                <input type="date" wire:model.live="endDate" id="endDate" class="block w-auto rounded-md border-0 py-1.5 px-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700 dark:[color-scheme:dark]">
+                <button wire:click="clearDates" type="button" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1.5 rounded focus:outline-none focus:ring-2 focus:ring-primary-500" title="Clear Dates">
+                    <flux:icon name="arrow-uturn-left" class="h-4 w-4"/>
+                </button>
+            </div>
 
-        {{-- Payment Type Filter --}}
-        <div class="w-full md:w-48">
-            <select wire:model.live="paymentTypeId" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700">
-                <option value="">All Types</option>
-                @foreach($this->paymentTypes as $id => $name)
-                    <option value="{{ $id }}">{{ $name }}</option>
-                @endforeach
-            </select>
+            {{-- Action Buttons: Email and Print --}}
+            <div class="flex items-center space-x-2">
+                <button wire:click="emailReport" type="button" class="text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-500 p-1.5 rounded focus:outline-none focus:ring-2 focus:ring-primary-500" title="Email Report">
+                    <span wire:loading wire:target="emailReport" class="animate-spin inline-block h-5 w-5"><flux:icon name="arrow-path"/></span>
+                    <span wire:loading.remove wire:target="emailReport"><flux:icon name="envelope" class="h-5 w-5"/></span>
+                </button>
+                <button wire:click="exportPdf" type="button" class="text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-500 p-1.5 rounded focus:outline-none focus:ring-2 focus:ring-primary-500" title="Print/Download PDF Report">
+                     <span wire:loading wire:target="exportPdf" class="animate-spin inline-block h-5 w-5"><flux:icon name="arrow-path"/></span>
+                    <span wire:loading.remove wire:target="exportPdf"><flux:icon name="printer" class="h-5 w-5"/></span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -136,6 +165,17 @@
                                 </tr>
                             @endforelse
                         </tbody>
+                        @if ($payments->hasPages() || (isset($grandTotalAmount) && $totalPaymentsCount > 0) )
+                            <tfoot class="bg-gray-50 dark:bg-gray-800">
+                                @if (isset($grandTotalAmount) && $totalPaymentsCount > 0)
+                                <tr class="font-semibold text-gray-900 dark:text-gray-100">
+                                    <td colspan="4" class="py-3.5 pl-4 pr-3 text-left text-sm sm:pl-6">Grand Totals ({{ $totalPaymentsCount }} Payments):</td>
+                                    <td class="px-3 py-3.5 text-left text-sm">{{ number_format($grandTotalAmount, 2) }}</td>
+                                    <td colspan="2" class="px-3 py-3.5 text-left text-sm"></td> {{-- Adjusted colspan for remaining columns --}}
+                                </tr>
+                                @endif
+                            </tfoot>
+                        @endif
                     </table>
                 </div>
             </div>

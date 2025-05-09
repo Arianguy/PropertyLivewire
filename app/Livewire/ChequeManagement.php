@@ -8,6 +8,9 @@ use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Mail\ChequeReportMail;
+use Illuminate\Support\Facades\Mail;
 
 class ChequeManagement extends Component
 {
@@ -25,6 +28,13 @@ class ChequeManagement extends Component
     public $attachmentUrl = null;
     public $attachmentName = null;
     public $chequeImage = null;
+
+    // New properties for search and date filters
+    public $search = '';
+    public $maturityStartDate = null;
+    public $maturityEndDate = null;
+
+    protected $paginationTheme = 'tailwind';
 
     // Listen for the event emitted by ResolveBouncedReceipt
     protected $listeners = ['receiptsUpdated' => '$refresh'];
@@ -45,9 +55,29 @@ class ChequeManagement extends Component
         $this->clear_depositDate = now()->format('Y-m-d');
     }
 
-    public function render()
+    public function updatingSearch()
     {
-        $cheques = Receipt::where('payment_type', 'CHEQUE')
+        $this->resetPage();
+    }
+    public function updatingMaturityStartDate()
+    {
+        $this->resetPage();
+    }
+    public function updatingMaturityEndDate()
+    {
+        $this->resetPage();
+    }
+
+    public function clearDates()
+    {
+        $this->maturityStartDate = null;
+        $this->maturityEndDate = null;
+        $this->resetPage();
+    }
+
+    private function getFilteredChequesQuery()
+    {
+        return Receipt::where('payment_type', 'CHEQUE')
             ->where(function ($query) {
                 $query->where('status', 'PENDING')
                     ->orWhere(function ($q) {
@@ -57,11 +87,44 @@ class ChequeManagement extends Component
             })
             ->with(['contract.tenant', 'contract.property', 'resolutionReceipts'])
             ->withSum('resolutionReceipts', 'amount')
-            ->orderBy('cheque_date', 'asc')
-            ->paginate(10);
+            ->when($this->search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('cheque_no', 'like', '%' . $search . '%')
+                        ->orWhere('cheque_bank', 'like', '%' . $search . '%')
+                        ->orWhere('amount', 'like', '%' . $search . '%')
+                        ->orWhereHas('contract.tenant', function ($tenantQuery) use ($search) {
+                            $tenantQuery->where('name', 'like', '%' . $search . '%');
+                        })
+                        ->orWhereHas('contract.property', function ($propertyQuery) use ($search) {
+                            $propertyQuery->where('name', 'like', '%' . $search . '%');
+                        })
+                        ->orWhereHas('contract', function ($contractQuery) use ($search) {
+                            $contractQuery->where('name', 'like', '%' . $search . '%');
+                        });
+                });
+            })
+            ->when($this->maturityStartDate, function ($query, $date) {
+                $query->whereDate('cheque_date', '>=', $date);
+            })
+            ->when($this->maturityEndDate, function ($query, $date) {
+                $query->whereDate('cheque_date', '<=', $date);
+            })
+            ->orderBy('cheque_date', 'asc');
+    }
+
+    public function render()
+    {
+        $query = $this->getFilteredChequesQuery();
+        $cheques = $query->paginate(10);
+
+        $grandTotals = [
+            'count' => $query->count(), // Get total count before pagination for grand total
+            'amount' => $query->sum('amount') // Get total sum before pagination for grand total
+        ];
 
         return view('livewire.cheque-management', [
-            'cheques' => $cheques
+            'cheques' => $cheques,
+            'grandTotals' => $grandTotals
         ]);
     }
 
@@ -70,9 +133,8 @@ class ChequeManagement extends Component
         Log::info("Attempting to open clear modal for Cheque ID: {$chequeId}");
         try {
             $this->selectedCheque = Receipt::findOrFail($chequeId);
-            // Reset the correct properties for the clear modal
             $this->reset(['clear_status', 'clear_remarks']);
-            $this->clear_depositDate = now()->format('Y-m-d'); // Ensure date is reset
+            $this->clear_depositDate = now()->format('Y-m-d');
             $this->showClearModal = true;
             Log::info("showClearModal property set to true for Cheque ID: {$chequeId}");
         } catch (\Exception $e) {
@@ -86,7 +148,6 @@ class ChequeManagement extends Component
 
     public function clearCheque()
     {
-        // Validate using the properties bound to the modal
         $validatedData = $this->validate();
         Log::info('Clear Cheque Validation Passed', $validatedData);
 
@@ -102,14 +163,13 @@ class ChequeManagement extends Component
 
             $this->selectedCheque->update([
                 'deposit_date' => $validatedData['clear_depositDate'],
-                'deposit_account' => '019100503669', // Keep the fixed account
+                'deposit_account' => '019100503669',
                 'status' => $validatedData['clear_status'],
                 'remarks' => $validatedData['clear_remarks'],
             ]);
 
             Log::info('Cheque update successful', ['cheque_id' => $this->selectedCheque->id]);
 
-            // Reset the correct properties and close modal
             $this->reset(['selectedCheque', 'clear_status', 'clear_remarks', 'showClearModal']);
             $this->clear_depositDate = now()->format('Y-m-d');
 
@@ -117,8 +177,7 @@ class ChequeManagement extends Component
                 'message' => 'Cheque status updated successfully!',
                 'type' => 'success'
             ]);
-            $this->dispatch('receiptsUpdated'); // Refresh tables if needed
-
+            $this->dispatch('receiptsUpdated');
         } catch (\Exception $e) {
             Log::error('Error clearing cheque', ['error' => $e->getMessage()]);
             $this->dispatch('notify', [
@@ -200,5 +259,63 @@ class ChequeManagement extends Component
 
         $media = $this->selectedCheque->getFirstMedia('cheque_images');
         return response()->download($media->getPath(), $media->name);
+    }
+
+    public function exportPdf()
+    {
+        $cheques = $this->getFilteredChequesQuery()->get(); // Get all filtered data, not paginated
+        $userName = Auth::user() ? Auth::user()->name : 'System';
+
+        if ($cheques->isEmpty()) {
+            $this->dispatch('notify', ['type' => 'warning', 'message' => 'No data available to export for the selected criteria.']);
+            return;
+        }
+
+        $grandTotals = [
+            'count' => $cheques->count(),
+            'amount' => $cheques->sum('amount')
+        ];
+
+        $data = [
+            'cheques' => $cheques,
+            'search' => $this->search,
+            'maturityStartDate' => $this->maturityStartDate,
+            'maturityEndDate' => $this->maturityEndDate,
+            'generatedAt' => now(),
+            'generatedBy' => $userName,
+            'grandTotals' => $grandTotals
+        ];
+
+        // Ensure the PDF view exists: resources/views/pdfs/reports/cheque-management.blade.php
+        $pdf = Pdf::loadView('pdfs.reports.cheque-management', $data);
+        $pdf->setPaper('a4', 'landscape');
+        $filename = 'cheque-management-report-' . now()->format('Y-m-d-His') . '.pdf';
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $filename);
+    }
+
+    public function emailReport()
+    {
+        $user = Auth::user();
+        if (!$user || !$user->email) {
+            $this->dispatch('notify', ['type' => 'error', 'message' => 'Your email address is not configured.']);
+            return;
+        }
+
+        try {
+            // Ensure the ChequeReportMail Mailable exists and is configured.
+            // It should accept $search, $startDate, $endDate and generate the PDF itself.
+            // Mail::to($user->email)->send(new ChequeReportMail(
+            //     $this->search,
+            //     $this->maturityStartDate,
+            //     $this->maturityEndDate,
+            //     $user->id
+            // ));
+            $this->dispatch('notify', ['type' => 'info', 'message' => 'Email functionality to be implemented with ChequeReportMail.']); // Placeholder notification
+        } catch (\Exception $e) {
+            Log::error('Error queuing cheque report email: ' . $e->getMessage(), ['exception' => $e]);
+            $this->dispatch('notify', ['type' => 'error', 'message' => 'Could not queue the email. Please try again.']);
+        }
     }
 }

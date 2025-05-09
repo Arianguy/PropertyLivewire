@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang=\"en\">
+<head>
+    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+    <title>Payments Report</title>
+    <style>
+        @page {
+            margin: 20px 25px 50px 25px; /* top, right, bottom, left */
+        }
+        body {
+            font-family: sans-serif;
+            font-size: 9px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 4px;
+            text-align: left;
+            vertical-align: top;
+            word-wrap: break-word; /* Ensure long descriptions wrap */
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .font-semibold {
+            font-weight: 600;
+        }
+        h1 {
+            font-size: 16px;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .filter-info {
+            font-size: 9px;
+            margin-bottom: 10px;
+            text-align: center; /* Ensures text within the div is centered */
+            color: #333;
+            width: 100%; /* Explicitly set width to allow centering */
+            display: block; /* Ensure it behaves as a block element */
+        }
+        tfoot tr {
+            background-color: #f9f9f9;
+            font-weight: bold;
+        }
+        .footer {
+            position: fixed;
+            bottom: 0px; /* Changed from -30px */
+            left: 0px;
+            right: 0px;
+            height: 30px;
+            text-align: center;
+            line-height: 30px;
+            font-size: 9px;
+            color: #777;
+            border-top: 1px solid #ddd;
+        }
+        .page-number:before {
+            content: \"Page \" counter(page);
+        }
+        /* Description column width */
+        td.description-cell {
+            max-width: 200px; /* Adjust as needed */
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <h1>Payments Report</h1>
+    <div class=\"filter-info\">
+        <strong>Filters Applied:</strong>
+        @if($search) Search: \"{{ $search }}\" | @endif
+        @if($propertyName) Property: \"{{ $propertyName }}\" | @endif
+        @if($paymentTypeName) Type: \"{{ $paymentTypeName }}\" | @endif
+        @if($startDate) Paid From: {{ \Carbon\Carbon::parse($startDate)->format('d-M-Y') }} | @endif
+        @if($endDate) Paid To: {{ \Carbon\Carbon::parse($endDate)->format('d-M-Y') }} @endif
+        @if(!$search && !$propertyName && !$paymentTypeName && !$startDate && !$endDate) None @endif
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Paid At</th>
+                <th>Property</th>
+                <th>Contract</th>
+                <th>Payment Type</th>
+                <th class="text-center">Amount</th>
+                <th>Description</th>
+                <th>Ref No.</th>
+                <th>Pay Method</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse ($payments as $payment)
+                <tr>
+                    <td>{{ $payment->paid_at->format('d M Y') }}</td>
+                    <td>{{ $payment->property?->name ?? 'N/A' }}</td>
+                    <td>{{ $payment->contract?->contract_number ?? '-' }}</td>
+                    <td>{{ $payment->paymentType?->name ?? 'N/A' }}</td>
+                    <td class="text-right">{{ number_format($payment->amount, 2) }}</td>
+                    <td class=\"description-cell\">{{ $payment->description }}</td>
+                    <td>{{ $payment->reference_number }}</td>
+                    <td>{{ Str::title(str_replace('_',' ', $payment->payment_method)) }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan=\"8\" class=\"text-center\" style=\"padding: 10px;\">No payments found matching your criteria.</td>
+                </tr>
+            @endforelse
+        </tbody>
+        @if ($payments->isNotEmpty() && isset($grandTotalAmount) && $totalPaymentsCount > 0)
+            <tfoot>
+                <tr>
+                    <td colspan="4" class="font-semibold" style="padding: 4px; border: 1px solid #ddd;">Grand Totals ({{ $totalPaymentsCount }} Payments):</td>
+                    <td class="text-right font-semibold" style="padding: 4px; border: 1px solid #ddd;">{{ number_format($grandTotalAmount, 2) }}</td>
+                    <td colspan="3" style="padding: 4px; border: 1px solid #ddd;"></td> {{-- Empty cells for remaining columns --}}
+                </tr>
+            </tfoot>
+        @endif
+    </table>
+
+    <div class="footer">
+        Generated by: {{ $generatedBy }} on {{ $generatedAt->format('d-M-Y h:i A') }} - <span class="page-number"></span>
+    </div>
+</body>
+</html>
