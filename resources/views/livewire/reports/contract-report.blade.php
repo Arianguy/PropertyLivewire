@@ -112,9 +112,8 @@
                                                     $isOngoing = $currentFilter === 'ongoing';
                                                     $endDate = $contract->cend ? \Carbon\Carbon::parse($contract->cend)->startOfDay() : null;
                                                     $today = \Carbon\Carbon::now()->startOfDay();
-                                                    $isClosed = $endDate ? $endDate->isPast() : false; // Determine if closed based on cend
-                                                    $statusText = $isClosed ? 'Closed' : 'Ongoing'; // Simple status based on cend
-                                                    // If you have a specific 'status' column you want to display, use $contract->status here instead.
+                                                    $isClosed = $contract->validity === 'NO'; // Determine if closed based on validity field
+                                                    $statusText = $isClosed ? 'Closed' : 'Ongoing'; // Status based on validity
                                                 @endphp
                                                 <span @class([
                                                     'inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset',

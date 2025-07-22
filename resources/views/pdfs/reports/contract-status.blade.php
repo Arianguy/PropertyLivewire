@@ -51,7 +51,7 @@
                 @forelse ($reportData as $index => $contract)
                     @php
                         $endDate = $contract->cend ? \Carbon\Carbon::parse($contract->cend)->startOfDay() : null;
-                        $isClosed = $endDate ? $endDate->isPast() : false;
+                        $isClosed = $contract->validity === 'NO';
                         $statusText = $isClosed ? 'Closed' : 'Ongoing';
                     @endphp
                     <tr>

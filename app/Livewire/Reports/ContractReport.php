@@ -91,13 +91,13 @@ class ContractReport extends Component
         $data['columns'] = ['#', 'Property', 'Tenant', 'Contract #', 'Start Date', 'End Date', 'Amount', 'Status']; // Common columns
 
         if ($this->filter === 'ongoing') {
-            // Modify query for ongoing contracts (cend >= today)
-            $query = $baseQuery->where('contracts.cend', '>=', $now->toDateString());
+            // Modify query for ongoing contracts (validity = YES)
+            $query = $baseQuery->where('contracts.validity', 'YES');
             $data['columns'][] = 'Remaining Days'; // Add specific column for ongoing
 
         } elseif ($this->filter === 'closed') {
-            // Modify query for closed contracts (cend < today)
-            $query = $baseQuery->where('contracts.cend', '<', $now->toDateString());
+            // Modify query for closed contracts (validity = NO)
+            $query = $baseQuery->where('contracts.validity', 'NO');
             $data['columns'][] = 'Closed On'; // Add specific column for closed
         } else {
             $query = $baseQuery; // Fallback or handle error

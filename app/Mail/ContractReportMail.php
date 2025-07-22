@@ -112,10 +112,10 @@ class ContractReportMail extends Mailable implements ShouldQueue
             $query = null; // Initialize query
 
             if ($this->reportType === 'ongoing') {
-                $query = $baseQuery->where('contracts.cend', '>=', $now->toDateString());
+                $query = $baseQuery->where('contracts.validity', 'YES');
                 $columns[] = 'Remaining Days';
             } elseif ($this->reportType === 'closed') {
-                $query = $baseQuery->where('contracts.cend', '<', $now->toDateString());
+                $query = $baseQuery->where('contracts.validity', 'NO');
                 $columns[] = 'Closed On';
             }
 
