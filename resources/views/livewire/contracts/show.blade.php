@@ -112,28 +112,37 @@
                         <div class="bg-white dark:bg-gray-800 px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Rental Amount</dt>
                                 <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">
-                                    <span class="font-semibold">${{ number_format($contract->amount, 2) }}</span>
+                                    <span class="font-semibold">{{ number_format($contract->amount, 2) }}</span>
                                     <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                        <span>Collection Scheduled: <span class="font-medium">${{ number_format($totalRentScheduled, 2) }}</span></span>
+                                        <span>Collection Scheduled: <span class="font-medium">{{ number_format($totalRentScheduled, 2) }}</span></span>
                                         @if($balanceDue > 0)
                                             {{-- balanceDue represents the unscheduled portion --}}
-                                            <span class="ml-2">Unscheduled: <span class="text-yellow-600 dark:text-yellow-400 font-medium">${{ number_format($balanceDue, 2) }}</span></span>
+                                            <span class="ml-2">Unscheduled: <span class="text-yellow-600 dark:text-yellow-400 font-medium">{{ number_format($balanceDue, 2) }}</span></span>
                                         @endif
                                     </div>
                                     @if($balanceDue > 0)
                                         {{-- Removing the previous unscheduled display as it's moved above --}}
                                     @endif
                                     <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                        <span>Realized Amount: <span class="text-green-600 dark:text-green-400 font-medium">${{ number_format($totalRentCleared, 2) }}</span></span>
+                                        <span>Realized Amount: <span class="text-green-600 dark:text-green-400 font-medium">{{ number_format($totalRentCleared, 2) }}</span></span>
                                         @if($totalRentPendingClearance > 0)
-                                            <span class="ml-2">Balance Pending Realization: <span class="text-red-600 dark:text-red-400 font-medium">${{ number_format($totalRentPendingClearance, 2) }}</span></span>
+                                            <span class="ml-2">Balance Pending Realization: <span class="text-red-600 dark:text-red-400 font-medium">{{ number_format($totalRentPendingClearance, 2) }}</span></span>
                                         @endif
                                     </div>
                                 </dd>
                         </div>
                         <div class="bg-gray-50 dark:bg-gray-900/50 px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Security Deposit</dt>
-                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">${{ number_format($contract->sec_amt, 2) }}</dd>
+                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">
+                                <div class="flex items-center gap-2">
+                                    <span>{{ number_format($contract->sec_amt, 2) }}</span>
+                                    @if($this->isSecurityDepositCleared())
+                                        <svg class="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+                                        </svg>
+                                    @endif
+                                </div>
+                            </dd>
                         </div>
                         <div class="bg-white dark:bg-gray-800 px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Ejari</dt>
@@ -246,7 +255,7 @@
                                 <a href="{{ route('contracts.show', $prevContract) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
                                     Contract #{{ $prevContract->name }}
                                 </a>
-                                <span class="text-sm text-gray-500 dark:text-gray-400">${{ number_format($prevContract->amount, 2) }}</span>
+                                <span class="text-sm text-gray-500 dark:text-gray-400">{{ number_format($prevContract->amount, 2) }}</span>
                             </div>
                             <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                                 {{ $prevContract->cstart->format('M d, Y') }} - {{ $prevContract->cend->format('M d, Y') }}
@@ -269,7 +278,7 @@
                                 <a href="{{ route('contracts.show', $renewal) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
                                     Contract #{{ $renewal->name }}
                                 </a>
-                                <span class="text-sm text-gray-500 dark:text-gray-400">${{ number_format($renewal->amount, 2) }}</span>
+                                <span class="text-sm text-gray-500 dark:text-gray-400">{{ number_format($renewal->amount, 2) }}</span>
                             </div>
                             <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                                 {{ $renewal->cstart->format('M d, Y') }} - {{ $renewal->cend->format('M d, Y') }}

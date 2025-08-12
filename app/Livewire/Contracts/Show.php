@@ -55,6 +55,20 @@ class Show extends Component
         $this->totalRentPendingClearance = max(0, $this->contract->amount - $this->totalRentCleared);
     }
 
+    public function isSecurityDepositCleared()
+    {
+        $allReceipts = $this->contract->receipts ?? collect();
+        $securityDepositReceipts = $allReceipts->where('receipt_category', 'SECURITY_DEPOSIT');
+        
+        // Check if there are any cleared security deposit receipts
+        $hasClearedReceipts = $securityDepositReceipts->where('status', 'CLEARED')->isNotEmpty();
+        
+        // Also check if there's a settlement record
+        $hasSettlement = $this->contract->settlement !== null;
+        
+        return $hasClearedReceipts || $hasSettlement;
+    }
+
     public function loadMedia()
     {
         $this->media = $this->contract->getMedia('contracts_copy')->map(function ($item) {
