@@ -64,6 +64,7 @@
                                 <option value="RENT">Rent</option>
                                 <option value="RETURN CHEQUE">Return Cheque</option>
                                 <option value="SECURITY_DEPOSIT">Security Deposit</option>
+                                <option value="VAT">VAT</option>
                             </select>
                             @error('receipt_category')
                                 <p class="text-red-500 dark:text-red-400 text-xs mt-1">{{ $message }}</p>

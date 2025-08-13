@@ -74,7 +74,7 @@ class ReceiptsController extends BaseController
         $this->authorize('edit receipts');
 
         $validated = $request->validate([
-            'receipt_category' => 'required|string',
+            'receipt_category' => 'required|in:SECURITY_DEPOSIT,RENT,RETURN CHEQUE,VAT,CANCELLED',
             'payment_type' => 'required|in:CASH,CHEQUE,ONLINE_TRANSFER',
             'amount' => 'required|numeric|min:0',
             'receipt_date' => 'required|date',

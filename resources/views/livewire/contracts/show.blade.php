@@ -144,7 +144,40 @@
                                 </div>
                             </dd>
                         </div>
+                        @if($contract->isVatApplicable())
                         <div class="bg-white dark:bg-gray-800 px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">VAT Information</dt>
+                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">
+                                <div class="space-y-1">
+                                    <div class="flex justify-between">
+                                        <span>VAT Rate:</span>
+                                        <span class="font-medium">{{ number_format($contract->getVatRate(), 2) }}%</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>VAT Amount:</span>
+                                        <span class="font-medium">{{ number_format($contract->calculateVatAmount(), 2) }}</span>
+                                    </div>
+                                    <div class="flex justify-between border-t pt-1">
+                                        <span class="font-semibold">Total (Incl. VAT):</span>
+                                        <span class="font-semibold">{{ number_format($contract->getTotalAmountWithVat(), 2) }}</span>
+                                    </div>
+                                </div>
+                                <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                                    <span>VAT Scheduled: <span class="font-medium">{{ number_format($totalVatScheduled, 2) }}</span></span>
+                                    @if($vatBalanceDue > 0)
+                                        <span class="ml-2">Unscheduled: <span class="text-yellow-600 dark:text-yellow-400 font-medium">{{ number_format($vatBalanceDue, 2) }}</span></span>
+                                    @endif
+                                </div>
+                                <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                    <span>VAT Realized: <span class="text-green-600 dark:text-green-400 font-medium">{{ number_format($totalVatCleared, 2) }}</span></span>
+                                    @if($totalVatPendingClearance > 0)
+                                        <span class="ml-2">VAT Pending Realization: <span class="text-red-600 dark:text-red-400 font-medium">{{ number_format($totalVatPendingClearance, 2) }}</span></span>
+                                    @endif
+                                </div>
+                            </dd>
+                        </div>
+                        @endif
+                        <div class="bg-gray-50 dark:bg-gray-900/50 px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Ejari</dt>
                             <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">{{ $contract->ejari }}</dd>
                         </div>

@@ -1,4 +1,16 @@
 <div class="p-4">
+    @if (session()->has('error'))
+        <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+            {{ session('error') }}
+        </div>
+    @endif
+    
+    @if (session()->has('success'))
+        <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+            {{ session('success') }}
+        </div>
+    @endif
+    
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-base font-medium text-gray-800">Receipt Details</h2>
         <button type="button" wire:click="addReceipt" class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-1 focus:ring-blue-500">
@@ -41,11 +53,13 @@
                                     <option value="RENT">Rent</option>
                                     <option value="RETURN CHEQUE">Return Cheque</option>
                                     <option value="SECURITY_DEPOSIT">Security Deposit</option>
+                                    <option value="VAT">VAT</option>
                                 </select>
                             </div>
                             @error("receipts.$index.receipt_category") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
+                        @if(($receipt['receipt_category'] ?? 'RENT') !== 'VAT')
                         <div>
                             <label for="amount_{{ $index }}" class="block text-xs font-medium text-gray-700">
                                 @if($receipt['payment_type'] === 'CASH')
@@ -59,6 +73,63 @@
                             <input type="number" step="0.01" id="amount_{{ $index }}" wire:model="receipts.{{ $index }}.amount" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm text-sm border-gray-300 rounded-md py-1.5" required>
                             @error("receipts.$index.amount") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
+                        @endif
+
+                        @if(($receipt['receipt_category'] ?? 'RENT') === 'VAT')
+                        <div>
+                            <label for="vat_amount_{{ $index }}" class="block text-xs font-medium text-gray-700">VAT Amount</label>
+                            <input type="number" step="0.01" id="vat_amount_{{ $index }}" wire:model="receipts.{{ $index }}.vat_amount" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm text-sm border-gray-300 rounded-md py-1.5" required>
+                            @error("receipts.$index.vat_amount") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        </div>
+                        @elseif($contract->isVatApplicable())
+                        <div>
+                            <label for="vat_rate_{{ $index }}" class="block text-xs font-medium text-gray-700">VAT Rate (%)</label>
+                            <input type="number" step="0.1" id="vat_rate_{{ $index }}" wire:model="receipts.{{ $index }}.vat_rate" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm text-sm border-gray-300 rounded-md py-1.5" readonly>
+                            @error("receipts.$index.vat_rate") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div>
+                            <label for="vat_amount_{{ $index }}" class="block text-xs font-medium text-gray-700">VAT Amount</label>
+                            <input type="number" step="0.01" id="vat_amount_{{ $index }}" wire:model="receipts.{{ $index }}.vat_amount" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm text-sm border-gray-300 rounded-md py-1.5" readonly>
+                            @error("receipts.$index.vat_amount") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        </div>
+
+                        @if(($receipt['receipt_category'] ?? 'RENT') !== 'VAT')
+                        <div class="col-span-2">
+                            <div class="flex items-center">
+                                <input type="checkbox" id="vat_inclusive_{{ $index }}" wire:model="receipts.{{ $index }}.vat_inclusive" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" {{ ($receipt['receipt_category'] ?? 'RENT') === 'RENT' ? 'disabled' : '' }}>
+                                <label for="vat_inclusive_{{ $index }}" class="ml-2 block text-xs font-medium text-gray-700">
+                                    Amount is VAT inclusive {{ ($receipt['receipt_category'] ?? 'RENT') === 'RENT' ? '(Always for Rent)' : '' }}
+                                </label>
+                            </div>
+                            @error("receipts.$index.vat_inclusive") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="col-span-2">
+                            <div class="bg-blue-50 border border-blue-200 rounded-md p-2">
+                                <div class="text-xs text-blue-800">
+                                    @if(($receipt['vat_inclusive'] ?? false))
+                                        <strong>Total Amount (including VAT): {{ number_format((float)($receipt['amount'] ?? 0), 2) }}</strong>
+                                        <br><span class="text-xs">Rent Amount: {{ number_format((float)($receipt['amount'] ?? 0) - (float)($receipt['vat_amount'] ?? 0), 2) }} | VAT Amount: {{ number_format((float)($receipt['vat_amount'] ?? 0), 2) }}</span>
+                                    @else
+                                        <strong>Total Amount (including VAT): {{ number_format((float)($receipt['amount'] ?? 0) + (float)($receipt['vat_amount'] ?? 0), 2) }}</strong>
+                                        <br><span class="text-xs">Rent Amount: {{ number_format((float)($receipt['amount'] ?? 0), 2) }} | VAT Amount: {{ number_format((float)($receipt['vat_amount'] ?? 0), 2) }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                        @endif
+
+                        @if(($receipt['receipt_category'] ?? 'RENT') === 'VAT')
+                        <div class="col-span-2">
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-md p-2">
+                                <div class="text-xs text-yellow-800">
+                                    <strong>Note:</strong> For VAT category, enter the VAT amount in the VAT Amount field. This will be used for all VAT-related calculations.
+                                </div>
+                            </div>
+                        </div>
+                        @endif
 
                         <div>
                             <label for="receipt_date_{{ $index }}" class="block text-xs font-medium text-gray-700">
@@ -147,8 +218,9 @@
     </div>
 
     <div class="flex justify-end mt-4">
-        <button wire:click.prevent="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-1 focus:ring-blue-500">
-            Save Receipts
+        <button wire:click.prevent="submit" wire:loading.attr="disabled" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50">
+            <span wire:loading.remove>Save Receipts</span>
+            <span wire:loading>Saving...</span>
         </button>
     </div>
 </div>

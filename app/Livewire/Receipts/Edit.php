@@ -22,6 +22,11 @@ class Edit extends Component
     public $narration;
     public $status;
 
+    // VAT fields
+    public $vat_rate;
+    public $vat_amount;
+    public $vat_inclusive;
+
     // Cheque fields
     public $cheque_no;
     public $cheque_bank;
@@ -76,6 +81,11 @@ class Edit extends Component
         $this->narration = $receipt->narration;
         $this->status = $receipt->getRawStatus();
 
+        // VAT fields
+        $this->vat_rate = $receipt->vat_rate ?? 0;
+        $this->vat_amount = $receipt->vat_amount ?? 0;
+        $this->vat_inclusive = $receipt->vat_inclusive ?? false;
+
         // Cheque fields
         $this->cheque_no = $receipt->cheque_no;
         $this->cheque_bank = $receipt->cheque_bank;
@@ -94,6 +104,43 @@ class Edit extends Component
             'has_cheque_image' => $receipt->hasChequeImage(),
             'has_transfer_image' => $receipt->hasTransferReceiptImage()
         ]);
+    }
+
+    public function calculateVat()
+    {
+        if ($this->receipt_category === 'VAT') {
+            // For VAT category, reset VAT fields as entire amount is VAT
+            $this->vat_rate = 0;
+            $this->vat_amount = 0;
+            $this->vat_inclusive = false;
+        } elseif ($this->receipt_category === 'RENT' && $this->contract->isVatApplicable()) {
+            // For RENT category, VAT is always inclusive
+            $this->vat_inclusive = true;
+            $this->vat_rate = $this->contract->getVatRate();
+            
+            if ($this->vat_inclusive) {
+                // Calculate VAT from inclusive amount
+                $this->vat_amount = ($this->amount * $this->vat_rate) / (100 + $this->vat_rate);
+            } else {
+                // Calculate VAT as additional to amount
+                $this->vat_amount = ($this->amount * $this->vat_rate) / 100;
+            }
+        } else {
+            // For other categories, reset VAT fields
+            $this->vat_rate = 0;
+            $this->vat_amount = 0;
+            $this->vat_inclusive = false;
+        }
+    }
+
+    public function updatedReceiptCategory()
+    {
+        $this->calculateVat();
+    }
+
+    public function updatedAmount()
+    {
+        $this->calculateVat();
     }
 
     public function refreshDebugInfo()
@@ -169,7 +216,7 @@ class Edit extends Component
     public function rules()
     {
         $rules = [
-            'receipt_category' => 'required|in:SECURITY_DEPOSIT,RENT,RETURN CHEQUE',
+            'receipt_category' => 'required|in:SECURITY_DEPOSIT,RENT,RETURN CHEQUE,VAT,CANCELLED',
             'payment_type' => 'required|in:CASH,CHEQUE,ONLINE_TRANSFER',
             'amount' => 'required|numeric|min:0.01',
             'receipt_date' => 'required|date',
@@ -247,6 +294,9 @@ class Edit extends Component
             'receipt_date' => $this->receipt_date,
             'narration' => $this->narration,
             'status' => $this->status,
+            'vat_rate' => $this->vat_rate,
+            'vat_amount' => $this->vat_amount,
+            'vat_inclusive' => $this->vat_inclusive,
             'cheque_no' => $this->payment_type === 'CHEQUE' ? $this->cheque_no : null,
             'cheque_bank' => $this->payment_type === 'CHEQUE' ? $this->cheque_bank : null,
             'cheque_date' => $this->payment_type === 'CHEQUE' ? $this->cheque_date : null,

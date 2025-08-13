@@ -18,6 +18,9 @@ class Receipt extends Model implements HasMedia
         'receipt_category',
         'payment_type',
         'amount',
+        'vat_amount',
+        'vat_rate',
+        'vat_inclusive',
         'receipt_date',
         'narration',
         'cheque_no',
@@ -35,6 +38,9 @@ class Receipt extends Model implements HasMedia
         'cheque_date' => 'date',
         'deposit_date' => 'date',
         'amount' => 'decimal:2',
+        'vat_amount' => 'decimal:2',
+        'vat_rate' => 'decimal:2',
+        'vat_inclusive' => 'boolean',
     ];
 
     public function contract()

@@ -23,6 +23,9 @@ class Contract extends Model implements HasMedia
         'cend',
         'close_date',
         'amount',
+        'vat_rate',
+        'vat_amount',
+        'vat_applicable',
         'sec_amt',
         'ejari',
         'validity',
@@ -36,6 +39,9 @@ class Contract extends Model implements HasMedia
         'cend' => 'date',
         'close_date' => 'date',
         'amount' => 'decimal:2',
+        'vat_rate' => 'decimal:2',
+        'vat_amount' => 'decimal:2',
+        'vat_applicable' => 'boolean',
         'sec_amt' => 'decimal:2',
     ];
 
@@ -114,6 +120,46 @@ class Contract extends Model implements HasMedia
         }
 
         return $allAncestors;
+    }
+
+    /**
+     * Check if VAT is applicable based on property type.
+     *
+     * @return bool
+     */
+    public function isVatApplicable()
+    {
+        return $this->property && strtolower($this->property->type) === 'commercial';
+    }
+
+    /**
+     * Get the VAT rate for this contract.
+     *
+     * @return float
+     */
+    public function getVatRate()
+    {
+        return $this->isVatApplicable() ? 5.00 : 0.00;
+    }
+
+    /**
+     * Calculate VAT amount based on the contract amount.
+     *
+     * @return float
+     */
+    public function calculateVatAmount()
+    {
+        return $this->amount * ($this->getVatRate() / 100);
+    }
+
+    /**
+     * Get total amount including VAT.
+     *
+     * @return float
+     */
+    public function getTotalAmountWithVat()
+    {
+        return $this->amount + $this->calculateVatAmount();
     }
 
     /**

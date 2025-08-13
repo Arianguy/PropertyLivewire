@@ -204,7 +204,8 @@
     <!-- Clear Cheque Modal -->
     <div x-data="{ show: @entangle('showClearModal') }"
          x-cloak
-         @keydown.escape.window="show = false">
+         @keydown.escape.window="$wire.showClearModal = false"
+         @close-modal.window="$wire.showClearModal = false">
         <div x-show="show"
              x-transition:enter="ease-out duration-300"
              x-transition:enter-start="opacity-0"
@@ -219,7 +220,7 @@
             <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                 <!-- Background overlay -->
                 <div x-show="show"
-                     @click="show = false"
+                     @click="$wire.showClearModal = false"
                      x-transition:enter="ease-out duration-300"
                      x-transition:enter-start="opacity-0"
                      x-transition:enter-end="opacity-100"
@@ -278,7 +279,7 @@
                             <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:col-start-2 sm:text-sm dark:bg-indigo-500 dark:hover:bg-indigo-600">
                                 Update Status
                             </button>
-                            <button type="button" @click="show = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:col-start-1 sm:text-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600">
+                            <button type="button" @click="$wire.showClearModal = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:col-start-1 sm:text-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600">
                                 Cancel
                             </button>
                         </div>

@@ -39,6 +39,9 @@ class Form extends Component
             'transaction_reference' => '',
             'cheque_image' => null,
             'transfer_receipt_image' => null,
+            'vat_rate' => $this->contract->isVatApplicable() ? $this->contract->getVatRate() : 0,
+            'vat_amount' => 0,
+            'vat_inclusive' => false,
         ]];
     }
 
@@ -56,6 +59,9 @@ class Form extends Component
             'transaction_reference' => '',
             'cheque_image' => null,
             'transfer_receipt_image' => null,
+            'vat_rate' => $this->contract->isVatApplicable() ? $this->contract->getVatRate() : 0,
+            'vat_amount' => 0,
+            'vat_inclusive' => false,
         ];
     }
 
@@ -65,15 +71,105 @@ class Form extends Component
         $this->receipts = array_values($this->receipts);
     }
 
+    public function calculateVat($index)
+    {
+        if (!$this->contract->isVatApplicable() || !isset($this->receipts[$index])) {
+            return;
+        }
+
+        $receipt = &$this->receipts[$index];
+        $category = $receipt['receipt_category'] ?? 'RENT';
+        $amount = (float) ($receipt['amount'] ?? 0);
+        $vatRate = (float) ($receipt['vat_rate'] ?? 0);
+        $vatInclusive = $receipt['vat_inclusive'] ?? false;
+
+        // For VAT category, the entire amount should be stored as vat_amount
+        if ($category === 'VAT') {
+            $receipt['vat_amount'] = $amount;
+            $receipt['vat_rate'] = $this->contract->getVatRate();
+            $receipt['vat_inclusive'] = false;
+            // Set amount to 0 since this is purely VAT
+            $receipt['amount'] = 0;
+            return;
+        }
+
+        // For RENT category, VAT is always inclusive when paid together
+        if ($category === 'RENT') {
+            $receipt['vat_inclusive'] = true;
+            $vatInclusive = true;
+        }
+
+        if ($amount > 0 && $vatRate > 0) {
+            if ($vatInclusive) {
+                // Amount includes VAT, calculate VAT amount
+                $receipt['vat_amount'] = round($amount * ($vatRate / (100 + $vatRate)), 2);
+            } else {
+                // Amount excludes VAT, calculate VAT amount
+                $receipt['vat_amount'] = round($amount * ($vatRate / 100), 2);
+            }
+        } else {
+            $receipt['vat_amount'] = 0;
+        }
+    }
+
+    public function updatedReceipts($value, $key)
+    {
+        // Extract index from key (e.g., "0.amount" -> 0)
+        $parts = explode('.', $key);
+        $index = (int) $parts[0];
+        $field = $parts[1] ?? '';
+
+        // Handle category change
+        if ($field === 'receipt_category') {
+            $receipt = &$this->receipts[$index];
+            if ($value === 'VAT') {
+                // For VAT category, move amount to vat_amount and reset amount
+                $currentAmount = $receipt['amount'] ?? 0;
+                $receipt['vat_amount'] = $currentAmount;
+                $receipt['amount'] = 0;
+                $receipt['vat_rate'] = $this->contract->getVatRate();
+                $receipt['vat_inclusive'] = false;
+            } elseif ($value === 'RENT' && $this->contract->isVatApplicable()) {
+                // For RENT category, set default VAT rate and inclusive
+                $receipt['vat_rate'] = $this->contract->getVatRate();
+                $receipt['vat_inclusive'] = true;
+                $this->calculateVat($index);
+            }
+        }
+
+        // Recalculate VAT when amount, vat_rate, or vat_inclusive changes
+        if (in_array($field, ['amount', 'vat_rate', 'vat_inclusive'])) {
+            $this->calculateVat($index);
+        }
+    }
+
     protected function rules()
     {
         $rules = [];
 
         foreach ($this->receipts as $index => $receipt) {
-            $rules["receipts.$index.receipt_category"] = 'required|in:SECURITY_DEPOSIT,RENT,RETURN CHEQUE';
+            $rules["receipts.$index.receipt_category"] = 'required|in:SECURITY_DEPOSIT,RENT,RETURN CHEQUE,VAT,CANCELLED';
             $rules["receipts.$index.payment_type"] = 'required|in:CASH,CHEQUE,ONLINE_TRANSFER';
-            $rules["receipts.$index.amount"] = 'required|numeric|min:0.01';
+            
+            // For VAT category, validate vat_amount instead of amount
+            if (($receipt['receipt_category'] ?? 'RENT') === 'VAT') {
+                $rules["receipts.$index.amount"] = 'nullable|numeric|min:0';
+                $rules["receipts.$index.vat_amount"] = 'required|numeric|min:0.01';
+            } else {
+                $rules["receipts.$index.amount"] = 'required|numeric|min:0.01';
+            }
+            
             $rules["receipts.$index.narration"] = 'required|string|max:255';
+            
+            if ($this->contract->isVatApplicable() && ($receipt['receipt_category'] ?? 'RENT') !== 'VAT') {
+                $rules["receipts.$index.vat_rate"] = 'required|numeric|min:0|max:100';
+                $rules["receipts.$index.vat_amount"] = 'required|numeric|min:0';
+                $rules["receipts.$index.vat_inclusive"] = 'required|boolean';
+            } else {
+                $rules["receipts.$index.vat_rate"] = 'nullable|numeric|min:0|max:100';
+                $rules["receipts.$index.vat_amount"] = 'nullable|numeric|min:0';
+                $rules["receipts.$index.vat_inclusive"] = 'nullable|boolean';
+            }
 
             if ($receipt['payment_type'] === 'CHEQUE') {
                 $rules["receipts.$index.cheque_no"] = 'required|string|max:50';
@@ -96,6 +192,20 @@ class Form extends Component
     public function submit()
     {
         try {
+            // Check if there are any receipts with valid data
+            $hasValidReceipts = false;
+            foreach ($this->receipts as $receipt) {
+                if (!empty($receipt['amount']) && !empty($receipt['narration'])) {
+                    $hasValidReceipts = true;
+                    break;
+                }
+            }
+            
+            if (!$hasValidReceipts) {
+                session()->flash('error', 'Please fill in at least one receipt with amount and narration.');
+                return;
+            }
+            
             $validated = $this->validate();
 
             DB::beginTransaction();
@@ -112,6 +222,9 @@ class Form extends Component
                     'cheque_no' => $receiptData['payment_type'] === 'CHEQUE' ? $receiptData['cheque_no'] : null,
                     'cheque_bank' => $receiptData['payment_type'] === 'CHEQUE' ? $receiptData['cheque_bank'] : null,
                     'cheque_date' => $receiptData['payment_type'] === 'CHEQUE' ? $receiptData['cheque_date'] : null,
+                    'vat_rate' => $receiptData['vat_rate'] ?? 0,
+                    'vat_amount' => $receiptData['vat_amount'] ?? 0,
+                    'vat_inclusive' => $receiptData['vat_inclusive'] ?? false,
                     'transaction_reference' => $receiptData['payment_type'] === 'ONLINE_TRANSFER' ? $receiptData['transaction_reference'] : null,
                     'status' => 'PENDING', // Default status
                     'deposit_date' => null, // Default deposit date
@@ -162,10 +275,15 @@ class Form extends Component
 
             DB::commit();
 
+            // Dispatch event to refresh calculations in other components
+            $this->dispatch('receiptsUpdated');
+
             session()->flash('success', 'Receipts recorded successfully.');
             return redirect()->route('contracts.show', $this->contract_id);
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Validation error in receipt form: ' . json_encode($e->errors()));
+            Log::error('Current receipts data: ' . json_encode($this->receipts));
+            session()->flash('error', 'Validation failed: ' . json_encode($e->errors()));
             throw $e;
         } catch (\Exception $e) {
             DB::rollBack();

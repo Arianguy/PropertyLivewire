@@ -19,20 +19,29 @@ class Show extends Component
     public $media = [];
     public $previousContracts = [];
     public $renewalContracts = [];
+    
+    protected $listeners = ['receiptsUpdated' => 'refreshCalculations'];
 
     public float $totalRentScheduled = 0;
     public float $totalRentCleared = 0;
     public float $totalRentPendingClearance = 0;
     public float $balanceDue = 0;
+    
+    // VAT calculation properties
+    public float $totalVatScheduled = 0;
+    public float $totalVatCleared = 0;
+    public float $totalVatPendingClearance = 0;
+    public float $vatBalanceDue = 0;
 
     public function mount(Contract $contract)
     {
         $this->contract = $contract->load(['receipts' => function ($query) {
-            $query->select('id', 'contract_id', 'receipt_category', 'amount', 'status', 'payment_type', 'cheque_no', 'narration', 'receipt_date');
+            $query->select('id', 'contract_id', 'receipt_category', 'amount', 'status', 'payment_type', 'cheque_no', 'narration', 'receipt_date', 'vat_amount', 'vat_rate');
         }]);
         $this->loadMedia();
         $this->loadContractHistory();
         $this->calculateRentTotals();
+        $this->calculateVatTotals();
     }
 
     public function calculateRentTotals()
@@ -55,6 +64,40 @@ class Show extends Component
         $this->totalRentPendingClearance = max(0, $this->contract->amount - $this->totalRentCleared);
     }
 
+    public function calculateVatTotals()
+    {
+        // Only calculate VAT if applicable for this contract
+        if (!$this->contract->isVatApplicable()) {
+            $this->totalVatScheduled = 0;
+            $this->totalVatCleared = 0;
+            $this->totalVatPendingClearance = 0;
+            $this->vatBalanceDue = 0;
+            return;
+        }
+
+        $allReceipts = $this->contract->receipts ?? collect();
+        $rentReceipts = $allReceipts->where('receipt_category', 'RENT');
+        $vatReceipts = $allReceipts->where('receipt_category', 'VAT');
+
+        // 1. VAT Scheduled: Sum of VAT amounts from RENT category receipts + VAT category receipts (vat_amount)
+        $rentVatAmount = (float) $rentReceipts->sum('vat_amount');
+        $vatReceiptsAmount = (float) $vatReceipts->sum('vat_amount'); // For VAT category, use vat_amount field
+        $this->totalVatScheduled = $rentVatAmount + $vatReceiptsAmount;
+
+        // 2. VAT Unscheduled: Contract VAT Amount - VAT Scheduled
+        $contractVatAmount = $this->contract->calculateVatAmount();
+        $this->vatBalanceDue = max(0, $contractVatAmount - $this->totalVatScheduled);
+
+        // 3. VAT Realized: Sum of VAT amounts from CLEARED RENT receipts + RETURN CHEQUE receipts + CLEARED VAT receipts
+        $clearedVatRent = (float) $rentReceipts->where('status', 'CLEARED')->sum('vat_amount');
+        $returnChequeVatPayments = (float) $allReceipts->where('receipt_category', 'RETURN CHEQUE')->sum('vat_amount');
+        $clearedVatReceipts = (float) $vatReceipts->where('status', 'CLEARED')->sum('vat_amount'); // Use vat_amount for VAT category
+        $this->totalVatCleared = $clearedVatRent + $returnChequeVatPayments + $clearedVatReceipts;
+
+        // 4. VAT Balance Pending Realization: Total Contract VAT Amount - VAT Realized
+        $this->totalVatPendingClearance = max(0, $contractVatAmount - $this->totalVatCleared);
+    }
+
     public function isSecurityDepositCleared()
     {
         $allReceipts = $this->contract->receipts ?? collect();
@@ -67,6 +110,18 @@ class Show extends Component
         $hasSettlement = $this->contract->settlement !== null;
         
         return $hasClearedReceipts || $hasSettlement;
+    }
+
+    public function refreshCalculations()
+    {
+        // Reload contract with receipts including VAT fields
+        $this->contract = $this->contract->load(['receipts' => function ($query) {
+            $query->select('id', 'contract_id', 'receipt_category', 'amount', 'status', 'payment_type', 'cheque_no', 'narration', 'receipt_date', 'vat_amount', 'vat_rate');
+        }]);
+        
+        // Recalculate all totals
+        $this->calculateRentTotals();
+        $this->calculateVatTotals();
     }
 
     public function loadMedia()
@@ -262,6 +317,7 @@ class Show extends Component
             // Reload the contract data to reflect changes
             $this->contract->refresh();
             $this->calculateRentTotals(); // Recalculate totals if needed
+            $this->calculateVatTotals(); // Recalculate VAT totals if needed
 
             $this->dispatch('notify', ['type' => 'success', 'message' => 'Contract closed successfully.']);
 

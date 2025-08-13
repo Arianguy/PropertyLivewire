@@ -146,12 +146,27 @@ class ChequeManagement extends Component
         }
     }
 
+    public function closeClearModal()
+    {
+        Log::info('Closing clear modal manually');
+        $this->showClearModal = false;
+        $this->reset(['selectedCheque', 'clear_status', 'clear_remarks']);
+        $this->clear_depositDate = now()->format('Y-m-d');
+    }
+
     public function clearCheque()
     {
-        $validatedData = $this->validate();
-        Log::info('Clear Cheque Validation Passed', $validatedData);
+        Log::info('clearCheque method called', [
+            'clear_depositDate' => $this->clear_depositDate,
+            'clear_status' => $this->clear_status,
+            'clear_remarks' => $this->clear_remarks,
+            'selectedCheque' => $this->selectedCheque?->id
+        ]);
 
         try {
+            $validatedData = $this->validate();
+            Log::info('Clear Cheque Validation Passed', $validatedData);
+
             if (!$this->selectedCheque) {
                 throw new \Exception('No cheque selected to clear.');
             }
@@ -170,20 +185,39 @@ class ChequeManagement extends Component
 
             Log::info('Cheque update successful', ['cheque_id' => $this->selectedCheque->id]);
 
-            $this->reset(['selectedCheque', 'clear_status', 'clear_remarks', 'showClearModal']);
+            // Reset properties and close modal
+            $this->reset(['selectedCheque', 'clear_status', 'clear_remarks']);
+            $this->showClearModal = false;
             $this->clear_depositDate = now()->format('Y-m-d');
 
+            Log::info('Modal should be closed now', ['showClearModal' => $this->showClearModal]);
+
+            // Dispatch event to force modal close
+            $this->dispatch('close-modal');
+            
             $this->dispatch('notify', [
                 'message' => 'Cheque status updated successfully!',
                 'type' => 'success'
             ]);
             $this->dispatch('receiptsUpdated');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation failed in clearCheque', [
+                'errors' => $e->errors(),
+                'data' => [
+                    'clear_depositDate' => $this->clear_depositDate,
+                    'clear_status' => $this->clear_status,
+                    'clear_remarks' => $this->clear_remarks
+                ]
+            ]);
+            // Don't close modal on validation error, let user see the errors
+            throw $e;
         } catch (\Exception $e) {
             Log::error('Error clearing cheque', ['error' => $e->getMessage()]);
             $this->dispatch('notify', [
                 'message' => $e->getMessage() ?: 'Error updating cheque status. Please try again.',
                 'type' => 'error'
             ]);
+            // Don't close modal on error
         }
     }
 

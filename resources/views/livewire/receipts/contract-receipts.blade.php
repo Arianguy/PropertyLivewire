@@ -32,6 +32,10 @@
                         </div>
                     </th>
                     <th class="py-3 px-6 text-left">Amount</th>
+                    @if($contract->isVatApplicable())
+                    <th class="py-3 px-6 text-left">VAT</th>
+                    <th class="py-3 px-6 text-left">Total</th>
+                    @endif
                     <th class="py-3 px-6 text-left">Payment Type</th>
                     <th class="py-3 px-6 text-left cursor-pointer" wire:click="sortBy('receipt_date')">
                         <div class="flex items-center">
@@ -69,7 +73,30 @@
                 <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600">
                     <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-100">{{ $receipt->receipt_category }}</td>
                     <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-100">{{ $receipt->cheque_no ?? '-' }}</td>
-                    <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-100">{{ number_format($receipt->amount, 2) }}</td>
+                    <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-100">
+                        @if($receipt->receipt_category === 'VAT')
+                            -
+                        @else
+                            {{ number_format((float)$receipt->amount - (float)$receipt->vat_amount, 2) }}
+                        @endif
+                    </td>
+                    @if($contract->isVatApplicable())
+                    <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-100">
+                        @if($receipt->vat_amount > 0)
+                            {{ number_format($receipt->vat_amount, 2) }}
+                            <span class="text-xs text-gray-500">({{ number_format($receipt->vat_rate, 1) }}%)</span>
+                        @else
+                            -
+                        @endif
+                    </td>
+                    <td class="py-3 px-6 text-left text-gray-900 dark:text-gray-100 font-medium">
+                        @if($receipt->receipt_category === 'VAT')
+                            {{ number_format($receipt->vat_amount, 2) }}
+                        @else
+                            {{ number_format($receipt->amount, 2) }}
+                        @endif
+                    </td>
+                    @endif
                     <td class="py-3 px-6 text-left">
                         <span>{{ $receipt->payment_type }}</span>
                         {{-- Display bounced cheque info if this receipt resolves one --}}
