@@ -164,9 +164,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/properties/create', App\Livewire\Properties\Create::class)
         ->middleware('role_or_permission:Super Admin|create properties')
         ->name('properties.create');
+    Route::get('/properties/{property}', App\Livewire\Properties\Show::class)
+        ->middleware('role_or_permission:Super Admin|view properties')
+        ->name('properties.show');
     Route::get('/properties/{property}/edit', App\Livewire\Properties\Edit::class)
         ->middleware('role_or_permission:Super Admin|edit properties')
         ->name('properties.edit');
+    Route::get('/properties/{property}/sell', App\Livewire\PropertySale::class)
+        ->middleware('role_or_permission:Super Admin|edit properties')
+        ->name('properties.sell');
 
     // Tenant Management
     Route::get('/tenants', App\Livewire\Tenants\Table::class)

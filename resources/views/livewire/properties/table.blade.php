@@ -76,6 +76,10 @@
                                             <span class="inline-flex items-center rounded-full bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-700 ring-1 ring-inset ring-yellow-600/20">
                                                 MAINTENANCE
                                             </span>
+                                        @elseif($property->status === 'SOLD')
+                                            <span class="inline-flex items-center rounded-full bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-600/20">
+                                                SOLD
+                                            </span>
                                         @else
                                             <span class="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-600/20">
                                                 {{ $property->status }}
@@ -84,15 +88,29 @@
                                     </td>
                                     <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                         <div class="flex justify-end gap-2">
+                                            <!-- View Property -->
+                                            <a href="{{ route('properties.show', $property) }}" class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200" title="View Property">
+                                                <flux:icon name="eye" class="h-5 w-5" />
+                                                <span class="sr-only">View</span>
+                                            </a>
+
                                             @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('edit properties'))
-                                            <a href="{{ route('properties.edit', $property) }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-500 dark:hover:text-primary-400">
+                                            <a href="{{ route('properties.edit', $property) }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-500 dark:hover:text-primary-400" title="Edit Property">
                                                 <flux:icon name="pencil-square" class="h-5 w-5" />
                                                 <span class="sr-only">Edit</span>
                                             </a>
                                             @endif
 
+                                            <!-- Sell Property Button (only for non-sold properties) -->
+                                            @if($property->status !== 'SOLD' && !$property->is_archived && (auth()->user()->hasRole('Super Admin') || auth()->user()->can('edit properties')))
+                                            <a href="{{ route('properties.sell', $property) }}" class="text-red-600 hover:text-red-900 dark:text-red-500 dark:hover:text-red-400" title="Sell Property">
+                                                <flux:icon name="currency-dollar" class="h-5 w-5" />
+                                                <span class="sr-only">Sell</span>
+                                            </a>
+                                            @endif
+
                                             @if(auth()->user()->hasRole('Super Admin') || auth()->user()->can('delete properties'))
-                                            <button type="button" wire:click="deleteProperty({{ $property->id }})" wire:confirm="Are you sure you want to delete this property?" class="text-red-600 hover:text-red-900 dark:text-red-500 dark:hover:text-red-400">
+                                            <button type="button" wire:click="deleteProperty({{ $property->id }})" wire:confirm="Are you sure you want to delete this property?" class="text-red-600 hover:text-red-900 dark:text-red-500 dark:hover:text-red-400" title="Delete Property">
                                                 <flux:icon name="trash" class="h-5 w-5" />
                                                 <span class="sr-only">Delete</span>
                                             </button>

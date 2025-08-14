@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use App\Models\User;
 
 class Property extends Model implements HasMedia
 {
@@ -44,6 +45,13 @@ class Property extends Model implements HasMedia
         'status',
         'salesdeed',
         'is_visible',
+        'sale_date',
+        'sale_price',
+        'buyer_name',
+        'sale_notes',
+        'is_archived',
+        'archived_at',
+        'archived_by',
     ];
 
     /**
@@ -62,6 +70,10 @@ class Property extends Model implements HasMedia
         'dewa_premise_no' => 'integer',
         'dewa_account_no' => 'integer',
         'is_visible' => 'boolean',
+        'sale_date' => 'date',
+        'sale_price' => 'decimal:2',
+        'is_archived' => 'boolean',
+        'archived_at' => 'datetime',
     ];
 
     /**
@@ -78,6 +90,30 @@ class Property extends Model implements HasMedia
     public function contracts(): HasMany
     {
         return $this->hasMany(Contract::class);
+    }
+
+    /**
+     * Get the user who archived the property.
+     */
+    public function archivedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'archived_by');
+    }
+
+    /**
+     * Scope for active (non-archived) properties.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_archived', false);
+    }
+
+    /**
+     * Scope for archived properties.
+     */
+    public function scopeArchived($query)
+    {
+        return $query->where('is_archived', true);
     }
 
     /**

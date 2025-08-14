@@ -109,7 +109,7 @@ class Edit extends Component
             'area_sq_feet' => 'required|numeric|min:0',
             'owner_id' => 'required|exists:owners,id',
             'purchase_value' => 'required|numeric|min:0',
-            'status' => 'required|string|in:VACANT,LEASED,MAINTENANCE',
+            'status' => 'required|string|in:VACANT,LEASED,MAINTENANCE,SOLD',
             'dewa_premise_no' => 'nullable|numeric|unique:properties,dewa_premise_no,' . $this->property->id,
             'dewa_account_no' => 'nullable|numeric',
             'is_visible' => 'boolean',
