@@ -29,29 +29,136 @@
                 </div>
 
                 <!-- Tenant Selection -->
-                <div class="sm:col-span-2">
-                    <label for="tenant_id" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Tenant</label>
-                    <div class="mt-2">
-                        <select wire:model="tenant_id" id="tenant_id" class="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:focus:ring-indigo-500">
-                            <option value="">Select a tenant</option>
-                            @foreach($tenants as $tenant)
-                                <option value="{{ $tenant->id }}">{{ $tenant->name }}</option>
-                            @endforeach
-                        </select>
+                <div class="sm:col-span-2" x-data="{ open: @entangle('show_tenant_dropdown') }">
+                    <label for="tenant_search" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Tenant</label>
+                    <div class="mt-2 relative">
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                wire:model.live.debounce.300ms="tenant_search" 
+                                @focus="$wire.show_tenant_dropdown = true" 
+                                @click.away="$wire.show_tenant_dropdown = false"
+                                id="tenant_search" 
+                                placeholder="Search tenants..." 
+                                class="block w-full rounded-md border-0 py-1.5 px-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:focus:ring-indigo-500"
+                            >
+                            @if($tenant_id)
+                                <button 
+                                    type="button" 
+                                    wire:click="clearTenantSelection" 
+                                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                >
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            @endif
+                        </div>
+                        
+                        <!-- Dropdown -->
+                        <div 
+                            x-show="open" 
+                            x-transition:enter="transition ease-out duration-100"
+                            x-transition:enter-start="transform opacity-0 scale-95"
+                            x-transition:enter-end="transform opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-75"
+                            x-transition:leave-start="transform opacity-100 scale-100"
+                            x-transition:leave-end="transform opacity-0 scale-95"
+                            class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
+                        >
+                            @if($this->filteredTenants->count() > 0)
+                                @foreach($this->filteredTenants as $tenant)
+                                    <div 
+                                        wire:click="selectTenant({{ $tenant->id }}, '{{ $tenant->name }}')"
+                                        class="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-500 {{ $tenant_id == $tenant->id ? 'bg-indigo-600 text-white' : 'text-gray-900 dark:text-gray-100' }}"
+                                    >
+                                        <div class="flex flex-col">
+                                            <span class="font-medium">{{ $tenant->name }}</span>
+                                        </div>
+                                        @if($tenant_id == $tenant->id)
+                                            <span class="absolute inset-y-0 right-0 flex items-center pr-4">
+                                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                                </svg>
+                                            </span>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            @else
+                                <div class="relative cursor-default select-none py-2 pl-3 pr-9 text-gray-700 dark:text-gray-300">
+                                    No tenants found.
+                                </div>
+                            @endif
+                        </div>
                     </div>
                     @error('tenant_id') <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- Property Selection -->
-                <div class="sm:col-span-2">
-                    <label for="property_id" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Property</label>
-                    <div class="mt-2">
-                        <select wire:model="property_id" id="property_id" class="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:focus:ring-indigo-500">
-                            <option value="">Select a property</option>
-                            @foreach($properties as $property)
-                                <option value="{{ $property->id }}">{{ $property->name }}</option>
-                            @endforeach
-                        </select>
+                <div class="sm:col-span-2" x-data="{ open: @entangle('show_property_dropdown') }">
+                    <label for="property_search" class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">Property</label>
+                    <div class="mt-2 relative">
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                wire:model.live.debounce.300ms="property_search" 
+                                @focus="$wire.show_property_dropdown = true" 
+                                @click.away="$wire.show_property_dropdown = false"
+                                id="property_search" 
+                                placeholder="Search properties..." 
+                                class="block w-full rounded-md border-0 py-1.5 px-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:focus:ring-indigo-500"
+                            >
+                            @if($property_id)
+                                <button 
+                                    type="button" 
+                                    wire:click="clearPropertySelection" 
+                                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                >
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            @endif
+                        </div>
+                        
+                        <!-- Dropdown -->
+                        <div 
+                            x-show="open" 
+                            x-transition:enter="transition ease-out duration-100"
+                            x-transition:enter-start="transform opacity-0 scale-95"
+                            x-transition:enter-end="transform opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-75"
+                            x-transition:leave-start="transform opacity-100 scale-100"
+                            x-transition:leave-end="transform opacity-0 scale-95"
+                            class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
+                        >
+                            @if($this->filteredProperties->count() > 0)
+                                @foreach($this->filteredProperties as $property)
+                                    <div 
+                                        wire:click="selectProperty({{ $property->id }}, '{{ $property->name }}')"
+                                        class="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-500 {{ $property_id == $property->id ? 'bg-indigo-600 text-white' : 'text-gray-900 dark:text-gray-100' }}"
+                                    >
+                                        <div class="flex flex-col">
+                                            <span class="font-medium">{{ $property->name }}</span>
+                                            @if($property->address)
+                                                <span class="text-sm opacity-75">{{ $property->address }}</span>
+                                            @endif
+                                        </div>
+                                        @if($property_id == $property->id)
+                                            <span class="absolute inset-y-0 right-0 flex items-center pr-4">
+                                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                                </svg>
+                                            </span>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            @else
+                                <div class="relative cursor-default select-none py-2 pl-3 pr-9 text-gray-700 dark:text-gray-300">
+                                    No vacant properties found.
+                                </div>
+                            @endif
+                        </div>
                     </div>
                     @error('property_id') <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
                 </div>

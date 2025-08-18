@@ -14,7 +14,7 @@ use App\Livewire\Reports\SecurityDepositReport;
 use App\Livewire\Reports\TenantLedgerReport;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 })->name('home');
 
 Route::view('dashboard', 'dashboard')

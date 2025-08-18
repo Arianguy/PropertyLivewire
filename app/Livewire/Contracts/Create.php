@@ -9,6 +9,7 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Computed;
 
 class Create extends Component
 {
@@ -24,6 +25,12 @@ class Create extends Component
     public $name;
     public $cont_copy;
     public $media = [];
+    
+    // Search properties
+    public $tenant_search = '';
+    public $property_search = '';
+    public $show_tenant_dropdown = false;
+    public $show_property_dropdown = false;
 
     protected function rules()
     {
@@ -42,6 +49,59 @@ class Create extends Component
     public function mount()
     {
         $this->name = $this->generateUniqueRandomName();
+    }
+    
+    #[Computed]
+    public function filteredTenants()
+    {
+        if (empty($this->tenant_search)) {
+            return Tenant::all();
+        }
+        
+        return Tenant::where('name', 'like', '%' . $this->tenant_search . '%')
+            ->orWhere('email', 'like', '%' . $this->tenant_search . '%')
+            ->orWhere('mobile', 'like', '%' . $this->tenant_search . '%')
+            ->get();
+    }
+    
+    #[Computed]
+    public function filteredProperties()
+    {
+        if (empty($this->property_search)) {
+            return Property::where('status', 'VACANT')->get();
+        }
+        
+        return Property::where('status', 'VACANT')
+            ->where('name', 'like', '%' . $this->property_search . '%')
+            ->get();
+    }
+    
+    public function selectTenant($tenantId, $tenantName)
+    {
+        $this->tenant_id = $tenantId;
+        $this->tenant_search = $tenantName;
+        $this->show_tenant_dropdown = false;
+    }
+    
+    public function selectProperty($propertyId, $propertyName)
+    {
+        $this->property_id = $propertyId;
+        $this->property_search = $propertyName;
+        $this->show_property_dropdown = false;
+    }
+    
+    public function clearTenantSelection()
+    {
+        $this->tenant_id = null;
+        $this->tenant_search = '';
+        $this->show_tenant_dropdown = false;
+    }
+    
+    public function clearPropertySelection()
+    {
+        $this->property_id = null;
+        $this->property_search = '';
+        $this->show_property_dropdown = false;
     }
 
     public function generateUniqueRandomName($length = 5)
@@ -119,9 +179,6 @@ class Create extends Component
 
     public function render()
     {
-        return view('livewire.contracts.create', [
-            'tenants' => Tenant::all(),
-            'properties' => Property::where('status', 'VACANT')->get(),
-        ]);
+        return view('livewire.contracts.create');
     }
 }
