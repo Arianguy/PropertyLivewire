@@ -164,6 +164,7 @@
                                         <option value="Mashreq Bank">Mashreq Bank</option>
                                         <option value="DIB">Dubai Islamic Bank</option>
                                         <option value="EIB">Emirates Islamic Bank</option>
+                                        <option value="SIB">Sharjah Islamic Bank</option>
                                     </select>
                                 </div>
                                 @error("receipts.$index.cheque_bank") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror

@@ -14,11 +14,10 @@ class PaymentTypeSeeder extends Seeder
     public function run(): void
     {
         $types = [
-            'Rent',
             'Security Deposit',
-            'Maintenance Fee',
+            'Repairs & Maintenance',
+            'Developer Service Charges',
             'Utility Bill',
-            'Property Tax',
             'Insurance',
             'Other',
         ];

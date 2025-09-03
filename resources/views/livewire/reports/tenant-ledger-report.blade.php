@@ -93,6 +93,7 @@
                     {{-- Contract Details Bar - Adjusted text color for better contrast --}}
                     <div class="mb-4 p-3 bg-primary-500 rounded-md flex flex-wrap justify-between items-center text-sm text-gray-800 dark:text-gray-100">
                         <span class="mr-2"><strong class="font-semibold">Contract Name:</strong> {{ $contract->name ?? 'N/A' }}</span>
+                        <span class="mr-2"><strong class="font-semibold">Property Name:</strong> {{ $contract->property->name ?? 'N/A' }}</span>
                         <span class="mr-2"><strong class="font-semibold">Tenant:</strong> {{ $contract->tenant->name ?? 'N/A' }}</span>
                         <span class="mr-2"><strong class="font-semibold">Rent:</strong> {{ number_format($contract->amount, 0) }}</span>
                         <span class="mr-2"><strong class="font-semibold">Start:</strong> {{ $contract->cstart ? $contract->cstart->format('d-M-Y') : 'N/A' }}</span>

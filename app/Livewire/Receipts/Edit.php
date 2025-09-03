@@ -46,7 +46,8 @@ class Edit extends Component
         'FAB' => 'First Abu Dhabi Bank',
         'Mashreq Bank' => 'Mashreq Bank',
         'DIB' => 'Dubai Islamic Bank',
-        'EIB' => 'Emirates Islamic Bank'
+        'EIB' => 'Emirates Islamic Bank',
+        'SIB' => 'Sharjah Islamic Bank'
     ];
 
     // Debug properties

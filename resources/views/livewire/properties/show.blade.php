@@ -8,15 +8,29 @@
                     <p class="text-blue-100 mt-1">Property Details & Management</p>
                 </div>
                 <div class="flex space-x-3">
+                    <a href="{{ route('properties.table') }}" 
+                       class="inline-flex items-center px-3 py-1 border border-white/30 rounded-md shadow-sm text-sm font-medium text-white bg-white/10 hover:bg-white/20 transition-colors duration-200">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Back to Properties
+                    </a>
                     @if(!$property->is_archived)
                         <a href="{{ route('properties.edit', $property) }}" 
                            class="px-4 py-2 bg-white text-blue-600 rounded-md hover:bg-blue-50 transition-colors duration-200 font-medium">
                             Edit Property
                         </a>
-                        <a href="{{ route('properties.sell', $property) }}" 
-                           class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-200 font-medium">
-                            Sell Property
-                        </a>
+                        @if($property->status === 'VACANT')
+                            <a href="{{ route('properties.sell', $property) }}" 
+                               class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-200 font-medium">
+                                Sell Property
+                            </a>
+                        @else
+                            <span class="px-4 py-2 bg-gray-400 text-white rounded-md font-medium cursor-not-allowed" 
+                                  title="Only vacant properties can be sold">
+                                Sell Property
+                            </span>
+                        @endif
                     @else
                         <span class="px-4 py-2 bg-gray-600 text-white rounded-md font-medium">
                             Archived Property
@@ -226,28 +240,7 @@
                 </div>
             </div>
 
-            <!-- Actions -->
-            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-900">Actions</h3>
-                </div>
-                <div class="p-6 space-y-3">
-                    <a href="{{ route('properties.table') }}" 
-                       class="w-full inline-flex justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                        Back to Properties
-                    </a>
-                    @if(!$property->is_archived)
-                        <a href="{{ route('properties.edit', $property) }}" 
-                           class="w-full inline-flex justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
-                            Edit Property
-                        </a>
-                        <a href="{{ route('properties.sell', $property) }}" 
-                           class="w-full inline-flex justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700">
-                            Sell Property
-                        </a>
-                    @endif
-                </div>
-            </div>
+
         </div>
     </div>
 </div>
